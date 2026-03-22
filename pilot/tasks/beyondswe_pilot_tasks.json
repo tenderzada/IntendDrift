@@ -1,0 +1,351 @@
+[
+  {
+    "task_id": "BSW-T1-001",
+    "drift_type": "T1_progressive_refinement",
+    "source": "beyondswe:pylons_pyramid_pr2951",
+    "repo": "Pylons/pyramid",
+    "image": "aweaiteam/beyondswe:pylons_pyramid_pr2951",
+    "commit": "a6de1c854b0ca7c71a6b4a283c2a89519808d434",
+    "difficulty": "easy",
+
+    "initial_request": "There's a TypeError happening somewhere in our Pyramid app's exception handling. Can you look into it?",
+
+    "drift_events": [
+      {
+        "trigger": "agent has read at least 2 files",
+        "user_message": "I think the issue is specifically in HTTPException.__str__. It crashes when the `detail` argument is a non-string object like a dict.",
+        "intent_before": "Investigate TypeError in exception handling (vague)",
+        "intent_after": "Fix HTTPException.__str__ to handle non-string detail"
+      },
+      {
+        "trigger": "agent has identified the bug location",
+        "user_message": "Right. We use dict details for our JSON error renderer, so please make sure `str()` works and also that `detail` is preserved as-is for the renderer to access later. Don't convert it to string internally.",
+        "intent_before": "Fix __str__ to handle non-string detail",
+        "intent_after": "Fix __str__ to not crash, but keep original detail object intact for renderer access"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": ["pyramid/tests/test_httpexceptions.py::TestHTTPException::test_allow_detail_non_str"],
+      "PASS_TO_PASS_subset": ["pyramid/tests/test_httpexceptions.py::TestHTTPException"]
+    },
+    "files_to_modify": ["pyramid/httpexceptions.py"],
+    "notes": "Agent should narrow from vague 'TypeError in exception handling' to the specific __str__ method, then further refine to preserve the detail object type."
+  },
+
+  {
+    "task_id": "BSW-T1-002",
+    "drift_type": "T1_progressive_refinement",
+    "source": "beyondswe:aio-libs_aiohttp_pr9366",
+    "repo": "aio-libs/aiohttp",
+    "image": "aweaiteam/beyondswe:aio-libs_aiohttp_pr9366",
+    "commit": "b612127d4ef5d99bd47151d8643e590f12cd5c20",
+    "difficulty": "medium",
+
+    "initial_request": "We've noticed some performance overhead in aiohttp's client request handling. Can you profile and optimize it?",
+
+    "drift_events": [
+      {
+        "trigger": "agent has read client_reqrep.py",
+        "user_message": "The bottleneck is in `ClientRequest.update_headers`, specifically the Host header generation. There's redundant string manipulation happening on every request.",
+        "intent_before": "Profile and optimize client request handling (broad)",
+        "intent_after": "Optimize Host header generation in update_headers to avoid redundant work"
+      },
+      {
+        "trigger": "agent has started modifying code",
+        "user_message": "Specifically: `is_default_port()` is being called even when the URL doesn't have an explicit port, and there's an unnecessary `rstrip('.')` on the host. Only do those operations when actually needed.",
+        "intent_before": "Optimize Host header generation (medium specificity)",
+        "intent_after": "Skip is_default_port() when no explicit port; skip rstrip('.') when no trailing dot"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "test_fail_to_pass.py::test_is_default_port_not_called_when_port_not_explicit",
+        "test_fail_to_pass.py::test_is_default_port_not_called_for_multiple_urls_without_explicit_port",
+        "test_fail_to_pass.py::test_rstrip_not_called_when_host_no_trailing_dot"
+      ],
+      "PASS_TO_PASS_subset": ["tests/test_client_request.py"]
+    },
+    "files_to_modify": ["aiohttp/client_reqrep.py"],
+    "notes": "Progressive refinement from broad 'optimize client requests' to specific conditional checks in update_headers."
+  },
+
+  {
+    "task_id": "BSW-T2-001",
+    "drift_type": "T2_topic_shift",
+    "source": "beyondswe:pylons_pyramid_pr3054 + pylons_pyramid_pr2951",
+    "repo": "Pylons/pyramid",
+    "image": "aweaiteam/beyondswe:pylons_pyramid_pr3054",
+    "commit": "8c4d422965b633f31967ceed1e6cc25cc616d0bf",
+    "difficulty": "medium",
+
+    "initial_request": "We need to improve the error messages when invalid view predicates are provided in Pyramid's configuration. Right now it just lists the unknown values with no helpful context.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has started modifying config/util.py",
+        "user_message": "Hold on — before you finish that, we just got a report that HTTPException.__str__ crashes when detail is a dict. That's blocking production. Can you fix that first? It's in pyramid/httpexceptions.py.",
+        "intent_before": "Improve predicate error messages in config/util.py",
+        "intent_after": "Fix HTTPException.__str__ crash with non-string detail (urgent)"
+      },
+      {
+        "trigger": "agent has modified httpexceptions.py",
+        "user_message": "Thanks, that fixes the production issue. OK let's go back to the predicate error messages — add 'did you mean X?' suggestions using close matches.",
+        "intent_before": "Fix HTTPException.__str__ (urgent detour)",
+        "intent_after": "Resume: add close-match suggestions to predicate error messages"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "pyramid/tests/test_config/test_util.py::TestPredicateList::test_predicate_close_matches",
+        "pyramid/tests/test_httpexceptions.py::TestHTTPException::test_allow_detail_non_str"
+      ],
+      "PASS_TO_PASS_subset": ["pyramid/tests/test_config/test_util.py", "pyramid/tests/test_httpexceptions.py"]
+    },
+    "files_to_modify": ["pyramid/config/util.py", "pyramid/httpexceptions.py"],
+    "notes": "Two real PRs combined into one topic-shift scenario. Agent must context-switch from error messages to HTTPException fix, then return without losing the original context."
+  },
+
+  {
+    "task_id": "BSW-T3-001",
+    "drift_type": "T3_constraint_addition",
+    "source": "beyondswe:tiangolo_fastapi_pr13314",
+    "repo": "tiangolo/fastapi",
+    "image": "aweaiteam/beyondswe:tiangolo_fastapi_pr13314",
+    "commit": "45e018517bedfaaec0c40247362da931e5ecde31",
+    "difficulty": "hard",
+
+    "initial_request": "FastAPI's parameter analysis is broken with Pydantic 2.11. The `field_info.annotation` attribute contains different data compared to Pydantic 2.10. Can you fix the regression?",
+
+    "drift_events": [
+      {
+        "trigger": "agent has started modifying fastapi/dependencies/utils.py",
+        "user_message": "Wait — the fix also needs to be backward compatible with Pydantic 2.10. We can't break existing users who haven't upgraded yet. Please make sure both 2.10 and 2.11 work correctly.",
+        "intent_before": "Fix parameter analysis for Pydantic 2.11",
+        "intent_after": "Fix parameter analysis for Pydantic 2.11 while maintaining backward compatibility with 2.10"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "test_fail_to_pass.py::test_query_annotation_unwrapped",
+        "test_fail_to_pass.py::test_path_annotation_unwrapped",
+        "test_fail_to_pass.py::test_body_annotation_unwrapped"
+      ],
+      "PASS_TO_PASS_subset": ["tests/test_tutorial/"]
+    },
+    "files_to_modify": ["fastapi/dependencies/utils.py"],
+    "notes": "Agent starts fixing for 2.11, then constraint added: must also work with 2.10. May need to undo a straightforward fix and add version-conditional logic."
+  },
+
+  {
+    "task_id": "BSW-T3-002",
+    "drift_type": "T3_constraint_addition",
+    "source": "beyondswe:geopandas_geopandas_pr3235",
+    "repo": "geopandas/geopandas",
+    "image": "aweaiteam/beyondswe:geopandas_geopandas_pr3235",
+    "commit": "3b2434bfe4e8d8b4db7c018944380e0ab29ec0fe",
+    "difficulty": "medium",
+
+    "initial_request": "GeoPandas crashes with a TypeError when converting GeometryArray to numpy arrays on Numpy 2.0. Fix the `__array__` method to be compatible.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has modified geopandas/array.py",
+        "user_message": "Good, but there's another requirement I forgot: `copy=True` must actually return a copy (not a view), and `copy=False` must return a view when possible. Numpy 2.0 is stricter about this. Please add both behaviors.",
+        "intent_before": "Fix TypeError in __array__ for Numpy 2.0",
+        "intent_after": "Fix __array__ for Numpy 2.0 with correct copy=True/False semantics"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "test_fail_to_pass.py::test_geometry_array__array__accepts_copy",
+        "test_fail_to_pass.py::test_geometry_array__array__copy_true_returns_copy",
+        "test_fail_to_pass.py::test_geometry_array__array__copy_false_returns_view"
+      ],
+      "PASS_TO_PASS_subset": ["geopandas/tests/test_array.py"]
+    },
+    "files_to_modify": ["geopandas/array.py"],
+    "notes": "Agent might fix the basic TypeError but the constraint addition requires implementing proper copy semantics — potentially invalidating a simple fix."
+  },
+
+  {
+    "task_id": "BSW-T4-001",
+    "drift_type": "T4_goal_conflict",
+    "source": "beyondswe:pylons_pyramid_pr1320",
+    "repo": "Pylons/pyramid",
+    "image": "aweaiteam/beyondswe:pylons_pyramid_pr1320",
+    "commit": "b13a78db3350cadf77183cac0a71860804fdde75",
+    "difficulty": "medium",
+
+    "initial_request": "The @wsgiapp and @wsgiapp2 decorators hang indefinitely when the wrapped function returns None. We need to fix this so the server doesn't hang.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing a fix",
+        "user_message": "Important: the fix must raise a clear ValueError at configuration time (not at request time), but you cannot change the decorator signature or add any required parameters. The decorator must still work exactly the same way for valid WSGI apps — zero API changes.",
+        "intent_before": "Fix the hang when wrapped function returns None",
+        "intent_after": "Raise ValueError at config time for None apps, but with zero changes to the existing decorator API"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "pyramid/tests/test_wsgi.py::WSGIAppTests::test_wsgiapp_none",
+        "pyramid/tests/test_wsgi.py::WSGIAppTests::test_wsgiapp_none_func",
+        "pyramid/tests/test_wsgi.py::WSGIApp2Tests::test_wsgiapp2_none",
+        "pyramid/tests/test_wsgi.py::WSGIApp2Tests::test_wsgiapp2_none_func"
+      ],
+      "PASS_TO_PASS_subset": ["pyramid/tests/test_wsgi.py"]
+    },
+    "files_to_modify": ["pyramid/wsgi.py"],
+    "notes": "The conflict is between 'raise error early' and 'don't change the API'. Agent must figure out where to add the check without modifying the public interface."
+  },
+
+  {
+    "task_id": "BSW-T5-001",
+    "drift_type": "T5_implicit_need",
+    "source": "beyondswe:fastapi_fastapi_pr14036",
+    "repo": "fastapi/fastapi",
+    "image": "aweaiteam/beyondswe:fastapi_fastapi_pr14036",
+    "commit": "22b38099ce5a4fba4f26cf8cae335691b26aab39",
+    "difficulty": "hard",
+
+    "initial_request": "We need to ensure FastAPI is compatible with the upcoming Pydantic 2.12.0. The test suite is failing against the alpha release.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has started investigating test failures",
+        "user_message": "OK, looks like you found the schema validation issue. Fix it.",
+        "intent_before": "Fix Pydantic 2.12.0 compatibility",
+        "intent_after": "Fix schema validation failures + implicit: also fix deprecation warnings that Pydantic 2.12 now emits for old-style parameter declarations"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "test_fail_to_pass.py::test_query_warning",
+        "test_fail_to_pass.py::test_path_warning",
+        "test_fail_to_pass.py::test_header_warning",
+        "test_fail_to_pass.py::test_cookie_warning",
+        "test_fail_to_pass.py::test_body_warning"
+      ],
+      "PASS_TO_PASS_subset": ["tests/test_multi_body_errors.py"]
+    },
+    "files_to_modify": ["fastapi/_compat.py", "fastapi/params.py"],
+    "notes": "The test names contain 'warning' — a proactive agent should notice that fixing the schema issue alone isn't enough; the deprecation warnings also need to be addressed. The user's message is deliberately vague ('fix it') to test whether the agent proactively handles all failures."
+  },
+
+  {
+    "task_id": "BSW-T6-001",
+    "drift_type": "T6_intent_backtracking",
+    "source": "beyondswe:geopandas_geopandas_pr3159",
+    "repo": "geopandas/geopandas",
+    "image": "aweaiteam/beyondswe:geopandas_geopandas_pr3159",
+    "commit": "b3dbe0f60fb79ef10d52b2827eddce93db6a9069",
+    "difficulty": "hard",
+
+    "initial_request": "GeoDataFrame loses its type and becomes a plain DataFrame when adding a row via .loc with Pandas 2.2. Fix it by overriding the _constructor property to always return GeoDataFrame.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has implemented a _constructor override",
+        "user_message": "Wait — I just checked and overriding _constructor causes issues with other pandas operations. The team says we should fix it by overriding `__finalize__` instead to preserve the GeoDataFrame type and CRS metadata after DataFrame operations. Please undo the _constructor approach and use __finalize__.",
+        "intent_before": "Fix via _constructor override",
+        "intent_after": "Undo _constructor approach, fix via __finalize__ override instead"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "geopandas/tests/test_op_output_types.py::test_loc_add_row[geometry]"
+      ],
+      "PASS_TO_PASS_subset": ["geopandas/tests/test_op_output_types.py", "geopandas/tests/test_geodataframe.py"]
+    },
+    "files_to_modify": ["geopandas/geodataframe.py"],
+    "notes": "Agent is told to use approach A (_constructor), implements it, then told to revert and use approach B (__finalize__). Must cleanly remove approach A code before implementing B. The real PR actually uses __finalize__, so the test validates the correct approach."
+  },
+
+  {
+    "task_id": "BSW-compound-001",
+    "drift_type": "T1+T3_compound",
+    "source": "beyondswe:fastapi_fastapi_pr14036",
+    "repo": "fastapi/fastapi",
+    "image": "aweaiteam/beyondswe:fastapi_fastapi_pr14036",
+    "commit": "22b38099ce5a4fba4f26cf8cae335691b26aab39",
+    "difficulty": "hard",
+
+    "initial_request": "Some of our FastAPI tests are failing. Can you investigate what's going wrong?",
+
+    "drift_events": [
+      {
+        "trigger": "agent has read test files and identified failures",
+        "user_message": "It looks like it's related to how we generate OpenAPI schemas. The JSON schema structure seems to have changed.",
+        "intent_before": "Investigate test failures (vague)",
+        "intent_after": "Fix OpenAPI schema generation issue",
+        "drift_subtype": "T1_progressive_refinement"
+      },
+      {
+        "trigger": "agent has started fixing schema generation",
+        "user_message": "Oh I should have mentioned — we just upgraded to Pydantic 2.12.0a1. The fix needs to work with both 2.11 and 2.12. Don't break backward compatibility.",
+        "intent_before": "Fix OpenAPI schema generation",
+        "intent_after": "Fix schema generation for Pydantic 2.12 while maintaining 2.11 compatibility",
+        "drift_subtype": "T3_constraint_addition"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "test_fail_to_pass.py::test_query_warning",
+        "test_fail_to_pass.py::test_path_warning",
+        "test_fail_to_pass.py::test_header_warning",
+        "test_fail_to_pass.py::test_cookie_warning",
+        "test_fail_to_pass.py::test_body_warning"
+      ],
+      "PASS_TO_PASS_subset": ["tests/"]
+    },
+    "files_to_modify": ["fastapi/_compat.py", "fastapi/params.py"],
+    "notes": "Compound: first narrow down the problem (T1), then add backward compatibility constraint (T3). Agent must first understand the issue, then handle the version constraint."
+  },
+
+  {
+    "task_id": "BSW-compound-002",
+    "drift_type": "T2+T6_compound",
+    "source": "beyondswe:pylons_pyramid_pr3054 + pylons_pyramid_pr1320",
+    "repo": "Pylons/pyramid",
+    "image": "aweaiteam/beyondswe:pylons_pyramid_pr3054",
+    "commit": "8c4d422965b633f31967ceed1e6cc25cc616d0bf",
+    "difficulty": "hard",
+
+    "initial_request": "Add 'did you mean X?' suggestions to Pyramid's ConfigurationError when invalid view predicates are used. Use difflib.get_close_matches.",
+
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing close matches in config/util.py",
+        "user_message": "Pause — there's a critical bug in pyramid/wsgi.py. The @wsgiapp decorator hangs when it gets None. Fix that first, it's blocking deployments.",
+        "intent_before": "Add close-match suggestions to predicate errors",
+        "intent_after": "Fix wsgiapp None hang (urgent detour)",
+        "drift_subtype": "T2_topic_shift"
+      },
+      {
+        "trigger": "agent has started modifying wsgi.py",
+        "user_message": "Actually, the ops team just confirmed they rolled back the deployment that was causing the None issue. It's not urgent anymore. Let's go back to the predicate error messages instead. But don't use difflib — use a simpler Levenshtein-based approach since we want to minimize stdlib dependencies.",
+        "intent_before": "Fix wsgiapp None hang",
+        "intent_after": "Resume predicate error messages, but switch from difflib to manual Levenshtein",
+        "drift_subtype": "T6_intent_backtracking"
+      }
+    ],
+
+    "original_tests": {
+      "FAIL_TO_PASS": [
+        "pyramid/tests/test_config/test_util.py::TestPredicateList::test_predicate_close_matches"
+      ],
+      "PASS_TO_PASS_subset": ["pyramid/tests/test_config/test_util.py"]
+    },
+    "files_to_modify": ["pyramid/config/util.py"],
+    "notes": "T2 (topic shift to urgent bug) + T6 (backtrack: abandon urgent bug, return to original task but with changed approach). Tests only require the predicate error message fix — the wsgiapp fix is abandoned."
+  }
+]
