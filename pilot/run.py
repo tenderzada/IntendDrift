@@ -352,7 +352,8 @@ def main():
     for task in tasks:
         logger.info(f"\n{'='*60}\nTask: {task['task_id']} ({task['drift_type']})\n{'='*60}")
 
-        workspace_path = str(PROJECT_ROOT / "workspaces" / task["task_id"].split("-")[0].upper() + "-" + task["task_id"].split("-")[1])
+        tid = task["task_id"]  # e.g. "T1-001"
+        workspace_path = str(PROJECT_ROOT / "workspaces" / tid)
         # Fallback: use T1-001 workspace for all tasks (only T1-001 has a workspace for now)
         if not Path(workspace_path).exists():
             workspace_path = str(PROJECT_ROOT / "workspaces" / "T1-001")
