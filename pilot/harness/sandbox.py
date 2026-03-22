@@ -66,7 +66,7 @@ class DaytonaSandbox(Sandbox):
 
         config = DaytonaConfig(
             api_key=os.environ.get("DAYTONA_API_KEY", ""),
-            server_url=os.environ.get("DAYTONA_API_URL", "https://app.daytona.io/api"),
+            api_url=os.environ.get("DAYTONA_API_URL", "http://localhost:3000/api"),
         )
         self._client = Daytona(config)
 
