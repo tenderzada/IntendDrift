@@ -58,21 +58,37 @@ class Sandbox(ABC):
 
 
 class DaytonaSandbox(Sandbox):
-    """Daytona cloud sandbox backend."""
+    """Daytona sandbox backend (works with both cloud and self-hosted)."""
 
     def __init__(self):
-        from daytona import Daytona
-        self._client = Daytona()
-        self._sandbox = self._client.create()
-        self._workspace = "/workspace"
+        from daytona import Daytona, DaytonaConfig, CreateSandboxFromImageParams
+        import os
 
-    def exec(self, command: str, cwd: str = "/workspace") -> str:
+        config = DaytonaConfig(
+            api_key=os.environ.get("DAYTONA_API_KEY", ""),
+            server_url=os.environ.get("DAYTONA_API_URL", "https://app.daytona.io/api"),
+        )
+        self._client = Daytona(config)
+
+        params = CreateSandboxFromImageParams(
+            image="python:3.11-slim",
+            language="python",
+        )
+        self._sandbox = self._client.create(params)
+        self._workspace = "/home/daytona"
+
+    def exec(self, command: str, cwd: str = "") -> str:
+        work_cwd = cwd or self._workspace
         result = self._sandbox.process.exec(
-            f"cd {cwd} && {command}",
+            f"cd {work_cwd} && {command}",
             timeout=120,
         )
-        output = result.output if hasattr(result, 'output') else str(result)
-        return output
+        # Handle different result types across SDK versions
+        if hasattr(result, 'output'):
+            return result.output or ""
+        if hasattr(result, 'result'):
+            return result.result or ""
+        return str(result)
 
     def read_file(self, path: str) -> str:
         full_path = f"{self._workspace}/{path}" if not path.startswith("/") else path
@@ -189,8 +205,9 @@ def create_sandbox(backend: str = "local", workspace_path: str = "") -> Sandbox:
     if backend == "daytona":
         sb = DaytonaSandbox()
         if workspace_path:
-            sb.upload_dir(workspace_path)
-            sb.exec("cd /workspace && git init -q && git add -A && git commit -q -m initial --allow-empty")
+            sb.upload_dir(workspace_path, sb._workspace)
+            sb.exec("git init -q && git add -A && git commit -q -m initial --allow-empty")
+            sb.exec("pip install flask pytest -q")
         return sb
     elif backend == "local":
         return LocalSandbox(workspace_path)
