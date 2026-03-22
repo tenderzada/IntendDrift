@@ -1,0 +1,4 @@
+openai>=1.50
+daytona>=0.150
+flask>=3.0
+pytest>=8.0

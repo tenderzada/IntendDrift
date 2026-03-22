@@ -1,0 +1,338 @@
+[
+  {
+    "name": "search_symptoms",
+    "description": "Search for possible conditions based on reported symptoms",
+    "parameters": {
+      "symptoms": {"type": "array", "description": "List of symptom descriptions", "required": true},
+      "duration": {"type": "string", "description": "How long symptoms have been present", "required": false},
+      "severity": {"type": "string", "description": "Symptom severity", "required": false, "enum": ["mild", "moderate", "severe"]},
+      "age": {"type": "integer", "description": "Patient age", "required": false},
+      "sex": {"type": "string", "description": "Patient biological sex", "required": false, "enum": ["male", "female"]}
+    },
+    "returns": "List of possible conditions ranked by likelihood with descriptions and recommended actions"
+  },
+  {
+    "name": "find_doctors",
+    "description": "Search for doctors or healthcare providers by specialty and location",
+    "parameters": {
+      "specialty": {"type": "string", "description": "Medical specialty", "required": false, "enum": ["general_practice", "cardiology", "dermatology", "orthopedics", "pediatrics", "psychiatry", "ophthalmology", "gynecology", "neurology", "oncology", "ent", "urology", "endocrinology"]},
+      "location": {"type": "string", "description": "City or ZIP code", "required": true},
+      "insurance": {"type": "string", "description": "Insurance provider name", "required": false},
+      "gender_preference": {"type": "string", "description": "Preferred doctor gender", "required": false, "enum": ["male", "female", "no_preference"]},
+      "accepting_new_patients": {"type": "boolean", "description": "Only show doctors accepting new patients", "required": false},
+      "min_rating": {"type": "number", "description": "Minimum patient rating (1-5)", "required": false},
+      "max_distance_km": {"type": "number", "description": "Maximum distance from location", "required": false}
+    },
+    "returns": "List of doctors with name, specialty, rating, address, availability, and insurance accepted"
+  },
+  {
+    "name": "get_doctor_details",
+    "description": "Get detailed information about a specific healthcare provider",
+    "parameters": {
+      "doctor_id": {"type": "string", "description": "Unique identifier of the doctor", "required": true}
+    },
+    "returns": "Full profile with credentials, specialties, education, office hours, accepted insurance, languages, and patient reviews"
+  },
+  {
+    "name": "book_appointment",
+    "description": "Book a medical appointment with a healthcare provider",
+    "parameters": {
+      "doctor_id": {"type": "string", "description": "Unique identifier of the doctor", "required": true},
+      "date": {"type": "string", "description": "Preferred appointment date (YYYY-MM-DD)", "required": true},
+      "time": {"type": "string", "description": "Preferred appointment time (HH:MM)", "required": true},
+      "visit_type": {"type": "string", "description": "Type of visit", "required": true, "enum": ["new_patient", "follow_up", "annual_checkup", "urgent", "telehealth"]},
+      "reason": {"type": "string", "description": "Reason for the visit", "required": true},
+      "patient_name": {"type": "string", "description": "Patient full name", "required": true},
+      "insurance_id": {"type": "string", "description": "Insurance member ID", "required": false}
+    },
+    "returns": "Appointment confirmation with appointment_id, date, time, location, and preparation instructions"
+  },
+  {
+    "name": "cancel_appointment",
+    "description": "Cancel an existing medical appointment",
+    "parameters": {
+      "appointment_id": {"type": "string", "description": "Unique identifier of the appointment", "required": true},
+      "reason": {"type": "string", "description": "Reason for cancellation", "required": false}
+    },
+    "returns": "Cancellation confirmation and any applicable cancellation fee"
+  },
+  {
+    "name": "reschedule_appointment",
+    "description": "Reschedule an existing medical appointment to a new date/time",
+    "parameters": {
+      "appointment_id": {"type": "string", "description": "Unique identifier of the appointment", "required": true},
+      "new_date": {"type": "string", "description": "New preferred date (YYYY-MM-DD)", "required": true},
+      "new_time": {"type": "string", "description": "New preferred time (HH:MM)", "required": true}
+    },
+    "returns": "Updated appointment confirmation with new date, time, and any changes"
+  },
+  {
+    "name": "get_appointment_details",
+    "description": "Retrieve details of an existing appointment",
+    "parameters": {
+      "appointment_id": {"type": "string", "description": "Unique identifier of the appointment", "required": true}
+    },
+    "returns": "Full appointment details including doctor, date, time, location, visit type, and preparation instructions"
+  },
+  {
+    "name": "list_appointments",
+    "description": "List all upcoming and past appointments",
+    "parameters": {
+      "status": {"type": "string", "description": "Filter by status", "required": false, "enum": ["upcoming", "completed", "cancelled", "all"]},
+      "from_date": {"type": "string", "description": "Start date filter (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End date filter (YYYY-MM-DD)", "required": false}
+    },
+    "returns": "List of appointments with doctor, date, time, type, and status"
+  },
+  {
+    "name": "check_doctor_availability",
+    "description": "Check available appointment slots for a specific doctor",
+    "parameters": {
+      "doctor_id": {"type": "string", "description": "Unique identifier of the doctor", "required": true},
+      "date": {"type": "string", "description": "Date to check (YYYY-MM-DD)", "required": true},
+      "visit_type": {"type": "string", "description": "Type of visit", "required": false, "enum": ["new_patient", "follow_up", "annual_checkup", "urgent", "telehealth"]}
+    },
+    "returns": "List of available time slots with duration and visit type"
+  },
+  {
+    "name": "search_medications",
+    "description": "Search for medication information by name or condition",
+    "parameters": {
+      "query": {"type": "string", "description": "Medication name or condition to treat", "required": true},
+      "type": {"type": "string", "description": "Medication type", "required": false, "enum": ["prescription", "otc", "generic", "brand"]},
+      "form": {"type": "string", "description": "Dosage form", "required": false, "enum": ["tablet", "capsule", "liquid", "injection", "topical", "inhaler", "patch"]}
+    },
+    "returns": "Medication details with name, dosage, side effects, interactions, and pricing"
+  },
+  {
+    "name": "check_drug_interactions",
+    "description": "Check for potential interactions between medications",
+    "parameters": {
+      "medications": {"type": "array", "description": "List of medication names to check interactions between", "required": true},
+      "include_food_interactions": {"type": "boolean", "description": "Include food-drug interactions", "required": false}
+    },
+    "returns": "Interaction report with severity levels, descriptions, and recommendations"
+  },
+  {
+    "name": "get_prescription_details",
+    "description": "Get details of an active prescription",
+    "parameters": {
+      "prescription_id": {"type": "string", "description": "Prescription identifier", "required": true}
+    },
+    "returns": "Prescription details including medication, dosage, frequency, refills remaining, and prescribing doctor"
+  },
+  {
+    "name": "request_prescription_refill",
+    "description": "Request a refill for an existing prescription",
+    "parameters": {
+      "prescription_id": {"type": "string", "description": "Prescription identifier", "required": true},
+      "pharmacy_id": {"type": "string", "description": "Preferred pharmacy for pickup", "required": false},
+      "delivery": {"type": "boolean", "description": "Request delivery instead of pickup", "required": false}
+    },
+    "returns": "Refill request confirmation with estimated ready date and pharmacy details"
+  },
+  {
+    "name": "list_prescriptions",
+    "description": "List all active and past prescriptions for the patient",
+    "parameters": {
+      "status": {"type": "string", "description": "Filter by status", "required": false, "enum": ["active", "expired", "all"]},
+      "include_otc": {"type": "boolean", "description": "Include over-the-counter medications", "required": false}
+    },
+    "returns": "List of prescriptions with medication name, dosage, frequency, prescriber, and refill status"
+  },
+  {
+    "name": "get_lab_results",
+    "description": "Retrieve lab test results",
+    "parameters": {
+      "test_type": {"type": "string", "description": "Type of lab test", "required": false, "enum": ["blood_panel", "urinalysis", "lipid_panel", "thyroid", "glucose", "liver_function", "kidney_function", "all"]},
+      "from_date": {"type": "string", "description": "Start date for results (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End date for results (YYYY-MM-DD)", "required": false}
+    },
+    "returns": "Lab results with test names, values, reference ranges, and abnormal flags"
+  },
+  {
+    "name": "get_medical_records",
+    "description": "Retrieve medical records and health history",
+    "parameters": {
+      "record_type": {"type": "string", "description": "Type of record", "required": false, "enum": ["visit_notes", "lab_results", "imaging", "procedures", "immunizations", "allergies", "all"]},
+      "from_date": {"type": "string", "description": "Start date (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End date (YYYY-MM-DD)", "required": false},
+      "doctor_id": {"type": "string", "description": "Filter by specific doctor", "required": false}
+    },
+    "returns": "Medical records with dates, providers, diagnoses, notes, and attached documents"
+  },
+  {
+    "name": "find_pharmacies",
+    "description": "Find nearby pharmacies with hours and services",
+    "parameters": {
+      "location": {"type": "string", "description": "City, ZIP code, or address", "required": true},
+      "open_now": {"type": "boolean", "description": "Only show currently open pharmacies", "required": false},
+      "services": {"type": "array", "description": "Required services", "required": false, "enum": ["drive_through", "24_hour", "compounding", "delivery", "vaccination", "covid_testing"]},
+      "max_distance_km": {"type": "number", "description": "Maximum distance from location", "required": false}
+    },
+    "returns": "List of pharmacies with name, address, hours, phone, services, and distance"
+  },
+  {
+    "name": "compare_medication_prices",
+    "description": "Compare prices for a medication across pharmacies",
+    "parameters": {
+      "medication_name": {"type": "string", "description": "Name of the medication", "required": true},
+      "dosage": {"type": "string", "description": "Dosage strength", "required": true},
+      "quantity": {"type": "integer", "description": "Number of pills/doses", "required": true},
+      "location": {"type": "string", "description": "Location for pharmacy search", "required": true},
+      "insurance_id": {"type": "string", "description": "Insurance member ID for copay estimates", "required": false}
+    },
+    "returns": "Price comparison across pharmacies with and without insurance, generic alternatives"
+  },
+  {
+    "name": "log_vital_signs",
+    "description": "Log vital sign measurements for health tracking",
+    "parameters": {
+      "measurement_type": {"type": "string", "description": "Type of vital sign", "required": true, "enum": ["blood_pressure", "heart_rate", "temperature", "blood_glucose", "weight", "oxygen_saturation", "respiratory_rate"]},
+      "value": {"type": "string", "description": "Measurement value (e.g., '120/80' for blood pressure)", "required": true},
+      "timestamp": {"type": "string", "description": "When measurement was taken (YYYY-MM-DDTHH:MM)", "required": false},
+      "notes": {"type": "string", "description": "Additional notes", "required": false}
+    },
+    "returns": "Logged measurement with comparison to normal ranges and trend"
+  },
+  {
+    "name": "get_vital_signs_history",
+    "description": "Retrieve historical vital sign measurements",
+    "parameters": {
+      "measurement_type": {"type": "string", "description": "Type of vital sign", "required": true, "enum": ["blood_pressure", "heart_rate", "temperature", "blood_glucose", "weight", "oxygen_saturation", "all"]},
+      "from_date": {"type": "string", "description": "Start date (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End date (YYYY-MM-DD)", "required": false},
+      "include_trends": {"type": "boolean", "description": "Include trend analysis", "required": false}
+    },
+    "returns": "Historical measurements with dates, values, trends, and alerts for abnormal readings"
+  },
+  {
+    "name": "get_insurance_coverage",
+    "description": "Check insurance coverage for a specific procedure, medication, or service",
+    "parameters": {
+      "insurance_id": {"type": "string", "description": "Insurance member ID", "required": true},
+      "service_type": {"type": "string", "description": "Type of service to check", "required": true, "enum": ["office_visit", "specialist", "lab_work", "imaging", "surgery", "medication", "therapy", "emergency", "telehealth"]},
+      "procedure_code": {"type": "string", "description": "CPT or procedure code", "required": false},
+      "provider_id": {"type": "string", "description": "Doctor or facility ID to check in-network status", "required": false}
+    },
+    "returns": "Coverage details including copay, coinsurance, deductible status, prior authorization requirements, and in-network status"
+  },
+  {
+    "name": "get_immunization_records",
+    "description": "Retrieve immunization/vaccination records",
+    "parameters": {
+      "patient_id": {"type": "string", "description": "Patient identifier", "required": false}
+    },
+    "returns": "List of immunizations with vaccine name, date administered, provider, and due dates for upcoming vaccines"
+  },
+  {
+    "name": "schedule_vaccination",
+    "description": "Schedule a vaccination appointment",
+    "parameters": {
+      "vaccine_type": {"type": "string", "description": "Type of vaccine", "required": true, "enum": ["flu", "covid_19", "tdap", "mmr", "hepatitis_a", "hepatitis_b", "hpv", "shingles", "pneumonia", "other"]},
+      "location": {"type": "string", "description": "Preferred location (pharmacy or clinic)", "required": true},
+      "date": {"type": "string", "description": "Preferred date (YYYY-MM-DD)", "required": true},
+      "time": {"type": "string", "description": "Preferred time (HH:MM)", "required": false},
+      "insurance_id": {"type": "string", "description": "Insurance member ID", "required": false}
+    },
+    "returns": "Vaccination appointment confirmation with location, date, cost, and what to bring"
+  },
+  {
+    "name": "get_health_summary",
+    "description": "Get a comprehensive health summary for the patient",
+    "parameters": {
+      "include_sections": {"type": "array", "description": "Sections to include in summary", "required": false, "enum": ["conditions", "medications", "allergies", "vitals", "lab_results", "immunizations", "procedures", "family_history"]},
+      "format": {"type": "string", "description": "Output format", "required": false, "enum": ["brief", "detailed", "printable"]}
+    },
+    "returns": "Comprehensive health summary with active conditions, current medications, allergies, recent vitals, and upcoming appointments"
+  },
+  {
+    "name": "update_allergies",
+    "description": "Add, update, or remove allergy information from the patient record",
+    "parameters": {
+      "action": {"type": "string", "description": "Action to perform", "required": true, "enum": ["add", "update", "remove"]},
+      "allergen": {"type": "string", "description": "Allergen name", "required": true},
+      "reaction": {"type": "string", "description": "Type of allergic reaction", "required": false},
+      "severity": {"type": "string", "description": "Severity of reaction", "required": false, "enum": ["mild", "moderate", "severe", "life_threatening"]}
+    },
+    "returns": "Updated allergy list with confirmation of changes"
+  },
+  {
+    "name": "find_urgent_care",
+    "description": "Find nearby urgent care facilities or emergency rooms",
+    "parameters": {
+      "location": {"type": "string", "description": "Current location (address or ZIP code)", "required": true},
+      "facility_type": {"type": "string", "description": "Type of facility", "required": false, "enum": ["urgent_care", "emergency_room", "walk_in_clinic", "all"]},
+      "open_now": {"type": "boolean", "description": "Only show currently open facilities", "required": false},
+      "insurance": {"type": "string", "description": "Insurance provider for coverage check", "required": false}
+    },
+    "returns": "List of nearby facilities with address, hours, wait time, services, and insurance acceptance"
+  },
+  {
+    "name": "get_care_instructions",
+    "description": "Get post-visit care instructions for a condition or procedure",
+    "parameters": {
+      "condition": {"type": "string", "description": "Condition or procedure name", "required": true},
+      "visit_id": {"type": "string", "description": "Visit ID for specific care instructions", "required": false}
+    },
+    "returns": "Care instructions including medications, activity restrictions, follow-up schedule, and warning signs to watch for"
+  },
+  {
+    "name": "message_doctor",
+    "description": "Send a secure message to a healthcare provider",
+    "parameters": {
+      "doctor_id": {"type": "string", "description": "Doctor to message", "required": true},
+      "subject": {"type": "string", "description": "Message subject", "required": true},
+      "message": {"type": "string", "description": "Message body", "required": true},
+      "urgency": {"type": "string", "description": "Message urgency level", "required": false, "enum": ["routine", "urgent", "emergency"]},
+      "attachments": {"type": "array", "description": "File paths to attach (e.g., photos of symptoms)", "required": false}
+    },
+    "returns": "Message sent confirmation with expected response time"
+  },
+  {
+    "name": "get_exercise_recommendations",
+    "description": "Get personalized exercise recommendations based on health profile",
+    "parameters": {
+      "fitness_level": {"type": "string", "description": "Current fitness level", "required": false, "enum": ["sedentary", "beginner", "intermediate", "advanced"]},
+      "conditions": {"type": "array", "description": "Medical conditions to consider", "required": false},
+      "goal": {"type": "string", "description": "Fitness goal", "required": false, "enum": ["weight_loss", "muscle_building", "cardiovascular", "flexibility", "general_wellness", "rehabilitation"]},
+      "duration_minutes": {"type": "integer", "description": "Available exercise time per session", "required": false}
+    },
+    "returns": "Personalized exercise plan with recommended activities, duration, frequency, and safety precautions"
+  },
+  {
+    "name": "calculate_bmi",
+    "description": "Calculate Body Mass Index and provide health assessment",
+    "parameters": {
+      "weight_kg": {"type": "number", "description": "Weight in kilograms", "required": true},
+      "height_cm": {"type": "number", "description": "Height in centimeters", "required": true},
+      "age": {"type": "integer", "description": "Age in years", "required": false},
+      "sex": {"type": "string", "description": "Biological sex", "required": false, "enum": ["male", "female"]}
+    },
+    "returns": "BMI value, category (underweight/normal/overweight/obese), and health recommendations"
+  },
+  {
+    "name": "set_medication_reminder",
+    "description": "Set up a reminder to take medication",
+    "parameters": {
+      "medication_name": {"type": "string", "description": "Name of the medication", "required": true},
+      "dosage": {"type": "string", "description": "Dosage (e.g., '500mg')", "required": true},
+      "times": {"type": "array", "description": "Times to take medication (HH:MM format)", "required": true},
+      "start_date": {"type": "string", "description": "Start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "End date (YYYY-MM-DD)", "required": false},
+      "instructions": {"type": "string", "description": "Special instructions (e.g., take with food)", "required": false}
+    },
+    "returns": "Reminder setup confirmation with schedule details"
+  },
+  {
+    "name": "estimate_medical_cost",
+    "description": "Estimate out-of-pocket costs for a medical procedure or visit",
+    "parameters": {
+      "procedure": {"type": "string", "description": "Procedure or service name", "required": true},
+      "procedure_code": {"type": "string", "description": "CPT or procedure code", "required": false},
+      "insurance_id": {"type": "string", "description": "Insurance member ID", "required": false},
+      "facility_id": {"type": "string", "description": "Facility ID for specific pricing", "required": false}
+    },
+    "returns": "Cost estimate with facility price range, insurance coverage, estimated copay, and payment options"
+  }
+]

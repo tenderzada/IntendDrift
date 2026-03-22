@@ -1,0 +1,317 @@
+[
+  {
+    "name": "get_account_balance",
+    "description": "Retrieve the current balance of a bank account",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Unique identifier of the bank account", "required": true},
+      "include_pending": {"type": "boolean", "description": "Include pending transactions in balance", "required": false}
+    },
+    "returns": "Account balance with available balance, pending amount, and currency"
+  },
+  {
+    "name": "get_transaction_history",
+    "description": "Retrieve transaction history for a bank account",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Unique identifier of the bank account", "required": true},
+      "start_date": {"type": "string", "description": "Start date for the query (YYYY-MM-DD)", "required": false},
+      "end_date": {"type": "string", "description": "End date for the query (YYYY-MM-DD)", "required": false},
+      "category": {"type": "string", "description": "Filter by transaction category", "required": false, "enum": ["income", "food", "transport", "shopping", "bills", "entertainment", "healthcare", "transfer", "other"]},
+      "min_amount": {"type": "number", "description": "Minimum transaction amount", "required": false},
+      "max_amount": {"type": "number", "description": "Maximum transaction amount", "required": false},
+      "limit": {"type": "integer", "description": "Maximum number of transactions to return", "required": false}
+    },
+    "returns": "List of transactions with date, amount, description, category, and running balance"
+  },
+  {
+    "name": "transfer_funds",
+    "description": "Transfer money between accounts or to another person",
+    "parameters": {
+      "from_account_id": {"type": "string", "description": "Source account ID", "required": true},
+      "to_account_id": {"type": "string", "description": "Destination account ID", "required": true},
+      "amount": {"type": "number", "description": "Amount to transfer", "required": true},
+      "currency": {"type": "string", "description": "Currency code (e.g., USD)", "required": true},
+      "memo": {"type": "string", "description": "Transfer memo or note", "required": false},
+      "transfer_type": {"type": "string", "description": "Type of transfer", "required": false, "enum": ["internal", "domestic", "international"]}
+    },
+    "returns": "Transfer confirmation with transfer_id, amount, fees, and estimated arrival time"
+  },
+  {
+    "name": "pay_bill",
+    "description": "Pay a bill or make a payment to a payee",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Account to pay from", "required": true},
+      "payee_id": {"type": "string", "description": "Payee or biller ID", "required": true},
+      "amount": {"type": "number", "description": "Payment amount", "required": true},
+      "payment_date": {"type": "string", "description": "Date to process payment (YYYY-MM-DD)", "required": false},
+      "recurring": {"type": "boolean", "description": "Set up as recurring payment", "required": false},
+      "frequency": {"type": "string", "description": "Recurring payment frequency", "required": false, "enum": ["weekly", "biweekly", "monthly", "quarterly", "annually"]}
+    },
+    "returns": "Payment confirmation with payment_id, amount, scheduled date, and estimated arrival"
+  },
+  {
+    "name": "get_stock_quote",
+    "description": "Get the current stock price and basic market data for a ticker symbol",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Stock ticker symbol (e.g., AAPL, GOOGL)", "required": true}
+    },
+    "returns": "Current price, daily change, volume, market cap, P/E ratio, and 52-week high/low"
+  },
+  {
+    "name": "get_stock_history",
+    "description": "Get historical price data for a stock over a time period",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Stock ticker symbol", "required": true},
+      "period": {"type": "string", "description": "Time period", "required": true, "enum": ["1d", "5d", "1m", "3m", "6m", "1y", "5y", "max"]},
+      "interval": {"type": "string", "description": "Data interval", "required": false, "enum": ["1min", "5min", "15min", "1h", "1d", "1w", "1m"]}
+    },
+    "returns": "Historical price data with open, high, low, close, volume for each interval"
+  },
+  {
+    "name": "place_stock_order",
+    "description": "Place a buy or sell order for a stock",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Brokerage account ID", "required": true},
+      "symbol": {"type": "string", "description": "Stock ticker symbol", "required": true},
+      "action": {"type": "string", "description": "Buy or sell", "required": true, "enum": ["buy", "sell"]},
+      "quantity": {"type": "integer", "description": "Number of shares", "required": true},
+      "order_type": {"type": "string", "description": "Type of order", "required": true, "enum": ["market", "limit", "stop", "stop_limit"]},
+      "limit_price": {"type": "number", "description": "Limit price (for limit and stop_limit orders)", "required": false},
+      "stop_price": {"type": "number", "description": "Stop price (for stop and stop_limit orders)", "required": false},
+      "time_in_force": {"type": "string", "description": "Order duration", "required": false, "enum": ["day", "gtc", "ioc", "fok"]}
+    },
+    "returns": "Order confirmation with order_id, status, estimated fill price, and commission"
+  },
+  {
+    "name": "get_portfolio_summary",
+    "description": "Get a summary of the user's investment portfolio",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Brokerage account ID", "required": true},
+      "include_performance": {"type": "boolean", "description": "Include performance metrics", "required": false}
+    },
+    "returns": "Portfolio holdings, total value, allocation breakdown, and performance metrics"
+  },
+  {
+    "name": "create_budget",
+    "description": "Create a monthly budget with category-level spending limits",
+    "parameters": {
+      "month": {"type": "string", "description": "Budget month (YYYY-MM)", "required": true},
+      "total_budget": {"type": "number", "description": "Total monthly budget", "required": true},
+      "categories": {"type": "object", "description": "Budget allocations by category (e.g., food: 500, transport: 200)", "required": true},
+      "savings_goal": {"type": "number", "description": "Monthly savings target", "required": false}
+    },
+    "returns": "Budget confirmation with category allocations and savings target"
+  },
+  {
+    "name": "get_budget_status",
+    "description": "Check current spending against budget for the month",
+    "parameters": {
+      "month": {"type": "string", "description": "Budget month (YYYY-MM)", "required": true},
+      "account_ids": {"type": "array", "description": "Account IDs to include in spending analysis", "required": false}
+    },
+    "returns": "Budget vs. actual spending by category with remaining amounts and alerts"
+  },
+  {
+    "name": "get_spending_analysis",
+    "description": "Analyze spending patterns over a period",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Account ID to analyze", "required": true},
+      "period": {"type": "string", "description": "Analysis period", "required": true, "enum": ["this_month", "last_month", "last_3_months", "last_6_months", "this_year", "last_year"]},
+      "group_by": {"type": "string", "description": "How to group spending", "required": false, "enum": ["category", "merchant", "day_of_week", "week", "month"]}
+    },
+    "returns": "Spending breakdown with totals, averages, trends, and top merchants by category"
+  },
+  {
+    "name": "get_credit_score",
+    "description": "Retrieve the user's current credit score and key factors",
+    "parameters": {
+      "bureau": {"type": "string", "description": "Credit bureau to check", "required": false, "enum": ["equifax", "experian", "transunion"]}
+    },
+    "returns": "Credit score, score range, key positive/negative factors, and score history"
+  },
+  {
+    "name": "compare_credit_cards",
+    "description": "Compare credit card offers based on user criteria",
+    "parameters": {
+      "card_type": {"type": "string", "description": "Type of card", "required": false, "enum": ["cashback", "travel_rewards", "balance_transfer", "low_interest", "business", "student"]},
+      "credit_score_range": {"type": "string", "description": "User's credit score range", "required": false, "enum": ["excellent", "good", "fair", "poor"]},
+      "annual_fee_max": {"type": "number", "description": "Maximum annual fee willing to pay", "required": false}
+    },
+    "returns": "List of credit cards with APR, rewards, annual fee, sign-up bonus, and key benefits"
+  },
+  {
+    "name": "set_savings_goal",
+    "description": "Create a savings goal with target amount and timeline",
+    "parameters": {
+      "goal_name": {"type": "string", "description": "Name of the savings goal", "required": true},
+      "target_amount": {"type": "number", "description": "Target savings amount", "required": true},
+      "target_date": {"type": "string", "description": "Target date to reach goal (YYYY-MM-DD)", "required": true},
+      "account_id": {"type": "string", "description": "Account to track savings in", "required": true},
+      "auto_contribute": {"type": "boolean", "description": "Enable automatic contributions", "required": false},
+      "contribution_amount": {"type": "number", "description": "Amount to auto-contribute per period", "required": false},
+      "contribution_frequency": {"type": "string", "description": "Frequency of auto-contributions", "required": false, "enum": ["weekly", "biweekly", "monthly"]}
+    },
+    "returns": "Savings goal created with recommended monthly contribution to meet target"
+  },
+  {
+    "name": "get_savings_goals",
+    "description": "Retrieve all savings goals and their current progress",
+    "parameters": {
+      "status": {"type": "string", "description": "Filter by goal status", "required": false, "enum": ["active", "completed", "paused", "all"]}
+    },
+    "returns": "List of savings goals with target, current balance, progress percentage, and projected completion"
+  },
+  {
+    "name": "calculate_loan_payment",
+    "description": "Calculate monthly payment and total cost for a loan",
+    "parameters": {
+      "principal": {"type": "number", "description": "Loan principal amount", "required": true},
+      "annual_rate": {"type": "number", "description": "Annual interest rate as percentage", "required": true},
+      "term_months": {"type": "integer", "description": "Loan term in months", "required": true},
+      "loan_type": {"type": "string", "description": "Type of loan", "required": false, "enum": ["fixed", "variable", "interest_only"]},
+      "extra_payment": {"type": "number", "description": "Extra monthly payment amount", "required": false}
+    },
+    "returns": "Monthly payment, total interest, total cost, and amortization schedule summary"
+  },
+  {
+    "name": "get_tax_summary",
+    "description": "Generate a tax summary for a specified tax year",
+    "parameters": {
+      "tax_year": {"type": "integer", "description": "Tax year (e.g., 2025)", "required": true},
+      "account_ids": {"type": "array", "description": "Account IDs to include", "required": false},
+      "include_deductions": {"type": "boolean", "description": "Include potential deductions", "required": false}
+    },
+    "returns": "Tax summary with income, deductions, estimated tax liability, and relevant tax documents"
+  },
+  {
+    "name": "search_etfs",
+    "description": "Search for ETFs by criteria such as sector, expense ratio, or performance",
+    "parameters": {
+      "sector": {"type": "string", "description": "Market sector", "required": false, "enum": ["technology", "healthcare", "finance", "energy", "consumer", "industrial", "real_estate", "bonds", "broad_market"]},
+      "max_expense_ratio": {"type": "number", "description": "Maximum expense ratio as percentage", "required": false},
+      "min_assets": {"type": "number", "description": "Minimum total assets under management", "required": false},
+      "sort_by": {"type": "string", "description": "Sort results by", "required": false, "enum": ["performance_1y", "performance_5y", "expense_ratio", "assets", "dividend_yield"]}
+    },
+    "returns": "List of ETFs with symbol, name, expense ratio, AUM, performance, and holdings summary"
+  },
+  {
+    "name": "get_exchange_rate",
+    "description": "Get current foreign exchange rate between two currencies",
+    "parameters": {
+      "from_currency": {"type": "string", "description": "Source currency code", "required": true},
+      "to_currency": {"type": "string", "description": "Target currency code", "required": true},
+      "amount": {"type": "number", "description": "Amount to convert", "required": false}
+    },
+    "returns": "Exchange rate, converted amount, bid/ask spread, and 30-day rate trend"
+  },
+  {
+    "name": "set_price_alert",
+    "description": "Set a price alert for a stock or cryptocurrency",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Ticker symbol", "required": true},
+      "target_price": {"type": "number", "description": "Price to trigger alert", "required": true},
+      "condition": {"type": "string", "description": "Alert condition", "required": true, "enum": ["above", "below"]},
+      "notification_method": {"type": "string", "description": "How to receive notification", "required": false, "enum": ["email", "sms", "push", "all"]}
+    },
+    "returns": "Alert confirmation with alert_id and current price"
+  },
+  {
+    "name": "get_financial_news",
+    "description": "Get financial news articles optionally filtered by topic or stock",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Stock symbol to get news for", "required": false},
+      "topic": {"type": "string", "description": "News topic", "required": false, "enum": ["markets", "economy", "earnings", "crypto", "commodities", "forex", "ipo"]},
+      "limit": {"type": "integer", "description": "Number of articles to return", "required": false}
+    },
+    "returns": "List of news articles with title, summary, source, date, and sentiment"
+  },
+  {
+    "name": "calculate_investment_return",
+    "description": "Calculate projected investment returns with compound interest",
+    "parameters": {
+      "initial_investment": {"type": "number", "description": "Initial investment amount", "required": true},
+      "monthly_contribution": {"type": "number", "description": "Monthly contribution amount", "required": false},
+      "annual_return_rate": {"type": "number", "description": "Expected annual return rate as percentage", "required": true},
+      "years": {"type": "integer", "description": "Investment time horizon in years", "required": true},
+      "inflation_rate": {"type": "number", "description": "Expected annual inflation rate as percentage", "required": false}
+    },
+    "returns": "Projected portfolio value, total contributions, total returns, and inflation-adjusted value"
+  },
+  {
+    "name": "list_recurring_payments",
+    "description": "List all recurring payments and subscriptions linked to an account",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Account ID to check", "required": true},
+      "status": {"type": "string", "description": "Filter by status", "required": false, "enum": ["active", "paused", "cancelled", "all"]}
+    },
+    "returns": "List of recurring payments with payee, amount, frequency, next payment date, and status"
+  },
+  {
+    "name": "cancel_recurring_payment",
+    "description": "Cancel a recurring payment or subscription",
+    "parameters": {
+      "payment_id": {"type": "string", "description": "ID of the recurring payment to cancel", "required": true},
+      "effective_date": {"type": "string", "description": "Date cancellation should take effect (YYYY-MM-DD)", "required": false}
+    },
+    "returns": "Cancellation confirmation with final payment date and any early termination fees"
+  },
+  {
+    "name": "get_account_statements",
+    "description": "Retrieve or download account statements for a period",
+    "parameters": {
+      "account_id": {"type": "string", "description": "Account ID", "required": true},
+      "period": {"type": "string", "description": "Statement period (YYYY-MM)", "required": true},
+      "format": {"type": "string", "description": "Output format", "required": false, "enum": ["pdf", "csv", "json"]}
+    },
+    "returns": "Account statement with all transactions, fees, interest, and ending balance"
+  },
+  {
+    "name": "categorize_transaction",
+    "description": "Assign or update the category of a specific transaction",
+    "parameters": {
+      "transaction_id": {"type": "string", "description": "Transaction ID to categorize", "required": true},
+      "category": {"type": "string", "description": "Category to assign", "required": true, "enum": ["income", "food", "transport", "shopping", "bills", "entertainment", "healthcare", "education", "transfer", "other"]},
+      "subcategory": {"type": "string", "description": "Optional subcategory", "required": false}
+    },
+    "returns": "Updated transaction with new category assignment"
+  },
+  {
+    "name": "get_mortgage_rates",
+    "description": "Get current mortgage rates from multiple lenders",
+    "parameters": {
+      "loan_type": {"type": "string", "description": "Type of mortgage", "required": true, "enum": ["30_year_fixed", "15_year_fixed", "5_1_arm", "7_1_arm", "fha", "va"]},
+      "loan_amount": {"type": "number", "description": "Desired loan amount", "required": false},
+      "credit_score": {"type": "integer", "description": "Approximate credit score", "required": false},
+      "down_payment_pct": {"type": "number", "description": "Down payment as percentage", "required": false}
+    },
+    "returns": "List of mortgage rates from lenders with APR, monthly payment estimate, and fees"
+  },
+  {
+    "name": "get_crypto_price",
+    "description": "Get the current price and market data for a cryptocurrency",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Cryptocurrency symbol (e.g., BTC, ETH)", "required": true},
+      "currency": {"type": "string", "description": "Quote currency (default USD)", "required": false}
+    },
+    "returns": "Current price, 24h change, volume, market cap, and circulating supply"
+  },
+  {
+    "name": "calculate_net_worth",
+    "description": "Calculate total net worth across all linked accounts",
+    "parameters": {
+      "include_accounts": {"type": "array", "description": "Specific account IDs to include (all if empty)", "required": false},
+      "include_liabilities": {"type": "boolean", "description": "Include debts and liabilities", "required": false}
+    },
+    "returns": "Net worth breakdown with total assets, total liabilities, and net worth trend over time"
+  },
+  {
+    "name": "dispute_transaction",
+    "description": "File a dispute for a suspicious or incorrect transaction",
+    "parameters": {
+      "transaction_id": {"type": "string", "description": "ID of the transaction to dispute", "required": true},
+      "reason": {"type": "string", "description": "Reason for dispute", "required": true, "enum": ["unauthorized", "duplicate", "incorrect_amount", "merchandise_not_received", "service_not_provided", "other"]},
+      "description": {"type": "string", "description": "Detailed description of the issue", "required": true},
+      "supporting_docs": {"type": "array", "description": "List of supporting document file paths", "required": false}
+    },
+    "returns": "Dispute case number, provisional credit amount, expected resolution timeline"
+  }
+]

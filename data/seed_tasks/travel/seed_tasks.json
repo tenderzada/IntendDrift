@@ -1,0 +1,146 @@
+[
+  {
+    "id": "travel_01",
+    "task": "Book a round-trip flight from New York to Tokyo",
+    "description": "The user wants to find and book a round-trip flight from JFK to Tokyo Narita for two adults, departing in mid-April and returning after 10 days, preferring direct flights with economy class.",
+    "complexity": "moderate",
+    "required_tools": ["flight_search", "flight_booking", "payment_processing"],
+    "expected_turns": 5
+  },
+  {
+    "id": "travel_02",
+    "task": "Search for pet-friendly hotels in Barcelona",
+    "description": "The user needs to find a pet-friendly hotel in central Barcelona for a 5-night stay in June, with a budget under 150 EUR per night, and wants to see guest ratings and amenities.",
+    "complexity": "simple",
+    "required_tools": ["hotel_search", "hotel_details"],
+    "expected_turns": 3
+  },
+  {
+    "id": "travel_03",
+    "task": "Plan a 7-day itinerary for a family trip to Italy",
+    "description": "The user wants a detailed day-by-day itinerary covering Rome, Florence, and Venice for a family of four with two children aged 8 and 12, including kid-friendly activities, restaurant suggestions, and transport between cities.",
+    "complexity": "complex",
+    "required_tools": ["itinerary_planner", "attraction_search", "restaurant_search", "transport_search"],
+    "expected_turns": 8
+  },
+  {
+    "id": "travel_04",
+    "task": "Check visa requirements for a Brazilian citizen visiting Australia",
+    "description": "The user holds a Brazilian passport and wants to know the visa requirements, application process, processing time, and fees for a 3-week tourist visit to Australia.",
+    "complexity": "simple",
+    "required_tools": ["visa_info_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "travel_05",
+    "task": "Rent a car for a road trip along the California coast",
+    "description": "The user wants to rent a convertible or SUV for a 5-day road trip from Los Angeles to San Francisco, picking up at LAX and dropping off at SFO, and wants to compare rental companies and insurance options.",
+    "complexity": "moderate",
+    "required_tools": ["car_rental_search", "car_rental_booking", "insurance_lookup"],
+    "expected_turns": 5
+  },
+  {
+    "id": "travel_06",
+    "task": "Book a high-speed train from Paris to Amsterdam",
+    "description": "The user wants to book Thalys or Eurostar tickets from Paris Gare du Nord to Amsterdam Centraal for two passengers on a specific date, comparing first and second class prices.",
+    "complexity": "simple",
+    "required_tools": ["train_search", "train_booking"],
+    "expected_turns": 4
+  },
+  {
+    "id": "travel_07",
+    "task": "Purchase travel insurance for an international backpacking trip",
+    "description": "The user is planning a 3-month backpacking trip across Southeast Asia and needs comprehensive travel insurance covering medical emergencies, trip cancellation, adventure sports, and lost luggage.",
+    "complexity": "moderate",
+    "required_tools": ["insurance_search", "insurance_comparison", "insurance_purchase"],
+    "expected_turns": 5
+  },
+  {
+    "id": "travel_08",
+    "task": "Arrange airport transfer from Heathrow to a London hotel",
+    "description": "The user arrives at Heathrow Terminal 5 at 7 AM and needs a pre-booked transfer to a hotel near Covent Garden, comparing private car, shared shuttle, and express train options.",
+    "complexity": "simple",
+    "required_tools": ["transfer_search", "transfer_booking"],
+    "expected_turns": 4
+  },
+  {
+    "id": "travel_09",
+    "task": "Check luggage policy for a multi-airline itinerary",
+    "description": "The user has a connecting itinerary with Lufthansa and then Singapore Airlines and needs to understand the checked baggage allowance, carry-on limits, and any fees for extra bags on each leg.",
+    "complexity": "simple",
+    "required_tools": ["airline_policy_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "travel_10",
+    "task": "Compare beach destinations for a winter holiday",
+    "description": "The user wants to compare Bali, Phuket, and the Maldives for a 10-day winter holiday in December, considering weather, cost of living, flight prices from London, and family-friendliness.",
+    "complexity": "moderate",
+    "required_tools": ["destination_info", "flight_search", "weather_lookup", "cost_comparison"],
+    "expected_turns": 6
+  },
+  {
+    "id": "travel_11",
+    "task": "Find last-minute flight deals from Chicago to anywhere in Europe",
+    "description": "The user has flexible dates within the next two weeks and wants to find the cheapest round-trip flights from Chicago O'Hare to any major European city, with a budget of $600.",
+    "complexity": "moderate",
+    "required_tools": ["flight_search", "deal_finder"],
+    "expected_turns": 4
+  },
+  {
+    "id": "travel_12",
+    "task": "Book a multi-city trip: London, Paris, Rome with flights and hotels",
+    "description": "The user wants to plan a 12-day trip visiting London (4 nights), Paris (4 nights), and Rome (4 nights), booking inter-city flights and centrally located hotels for each stop within a total budget of $4000.",
+    "complexity": "complex",
+    "required_tools": ["flight_search", "flight_booking", "hotel_search", "hotel_booking", "payment_processing"],
+    "expected_turns": 8
+  },
+  {
+    "id": "travel_13",
+    "task": "Find wheelchair-accessible accommodations in Kyoto",
+    "description": "The user is a wheelchair user looking for accessible hotels or ryokans in Kyoto with barrier-free rooms, roll-in showers, and proximity to accessible public transport for a 4-night stay.",
+    "complexity": "moderate",
+    "required_tools": ["hotel_search", "accessibility_filter", "hotel_details"],
+    "expected_turns": 5
+  },
+  {
+    "id": "travel_14",
+    "task": "Organize a group trip for 8 friends to Cancun",
+    "description": "The user is coordinating a group trip for 8 people to Cancun for 5 nights, needing group flight rates, a villa or adjoining hotel rooms, and group activity bookings like snorkeling and cenote tours.",
+    "complexity": "complex",
+    "required_tools": ["flight_search", "hotel_search", "group_booking", "activity_search", "activity_booking"],
+    "expected_turns": 7
+  },
+  {
+    "id": "travel_15",
+    "task": "Check real-time flight status and gate information",
+    "description": "The user wants to check the real-time status of United Airlines flight UA 901 departing today, including current delay information, gate number, and estimated arrival time.",
+    "complexity": "simple",
+    "required_tools": ["flight_status_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "travel_16",
+    "task": "Plan a cruise from Miami through the Caribbean",
+    "description": "The user wants to compare 7-day Caribbean cruise options departing from Miami in March, looking at different cruise lines, cabin types, ports of call, and onboard amenities for a couple.",
+    "complexity": "complex",
+    "required_tools": ["cruise_search", "cruise_comparison", "cruise_booking", "cabin_selection"],
+    "expected_turns": 7
+  },
+  {
+    "id": "travel_17",
+    "task": "Convert currency and estimate daily expenses in Vietnam",
+    "description": "The user is traveling to Vietnam and wants to know the current USD to VND exchange rate, estimate daily expenses for food, transport, and accommodation in Ho Chi Minh City, and find the best way to exchange money.",
+    "complexity": "simple",
+    "required_tools": ["currency_converter", "cost_estimator"],
+    "expected_turns": 3
+  },
+  {
+    "id": "travel_18",
+    "task": "Rebook a cancelled flight and find alternative routes",
+    "description": "The user's direct flight from San Francisco to Seoul was cancelled and they need to find alternative routes, possibly with one stop, arriving within 6 hours of the original arrival time, and rebook using the same ticket.",
+    "complexity": "complex",
+    "required_tools": ["flight_search", "booking_management", "flight_rebooking", "airline_contact"],
+    "expected_turns": 6
+  }
+]

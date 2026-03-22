@@ -1,0 +1,245 @@
+[
+  {
+    "blueprint_id": "T1_progressive_refinement-travel-001",
+    "drift_type": "T1_progressive_refinement",
+    "domain": "travel",
+    "seed_task_id": "travel_01",
+    "initial_intent": "Help me find a flight to Europe next month",
+    "drift_events": [
+      {
+        "turn": 3,
+        "trigger": "Agent shows flights to various European cities; user realizes they want Paris specifically",
+        "user_utterance": "Actually, I'm most interested in Paris. What flights are available to Paris?",
+        "intent_before": "Find a flight to any European city next month",
+        "intent_after": "Find a flight to Paris next month",
+        "tools_affected": ["search_flights"]
+      },
+      {
+        "turn": 5,
+        "trigger": "Agent shows Paris flights at various prices; user sees budget-friendly options and wants to narrow further",
+        "user_utterance": "These look good. Can you filter to just the ones under $600? And preferably departing in the morning.",
+        "intent_before": "Find a flight to Paris next month",
+        "intent_after": "Find a morning flight to Paris next month, under $600",
+        "tools_affected": ["search_flights"]
+      },
+      {
+        "turn": 8,
+        "trigger": "User remembers airline preference after seeing options",
+        "user_utterance": "Oh, I forgot to mention — I have frequent flyer miles with Delta. Do any of those results include Delta flights?",
+        "intent_before": "Find a morning flight to Paris next month, under $600",
+        "intent_after": "Find a morning Delta flight to Paris next month, under $600",
+        "tools_affected": ["search_flights", "check_loyalty_program"]
+      }
+    ],
+    "final_intent": "Book a morning Delta flight to Paris next month, under $600, using frequent flyer miles",
+    "expected_end_state": {
+      "flight_booked": true,
+      "destination": "Paris",
+      "airline": "Delta",
+      "price_under": 600,
+      "departure_time": "morning",
+      "loyalty_miles_applied": true
+    },
+    "ideal_agent_behavior": "Incrementally refine search parameters with each user turn without restarting from scratch. Retain previous constraints while adding new ones. When user mentions loyalty program, proactively check mile balance and applicable redemptions.",
+    "anti_pattern": "Restarting the entire flight search from scratch each time the user adds a preference, losing previous context.",
+    "expected_tool_call_sequence": [
+      "search_flights(destination='Europe', date_range='next_month')",
+      "search_flights(destination='Paris', date_range='next_month')",
+      "search_flights(destination='Paris', date_range='next_month', max_price=600, departure_time='morning')",
+      "check_loyalty_program(airline='Delta', user_id='...')",
+      "search_flights(destination='Paris', date_range='next_month', max_price=600, departure_time='morning', airline='Delta')",
+      "book_flight(flight_id='...', use_miles=true)"
+    ],
+    "difficulty": "easy",
+    "naturalness_score": 5,
+    "num_turns": 12
+  },
+  {
+    "blueprint_id": "T2_topic_shift-productivity-001",
+    "drift_type": "T2_topic_shift",
+    "domain": "productivity",
+    "seed_task_id": "productivity_03",
+    "initial_intent": "Schedule a team meeting for next Tuesday at 2pm",
+    "drift_events": [
+      {
+        "turn": 4,
+        "trigger": "While checking calendars, user remembers an urgent unrelated task",
+        "user_utterance": "Oh wait, before we finalize that — I just remembered I need to send an email to the client about the project delay. Can you draft that first?",
+        "intent_before": "Schedule a team meeting for next Tuesday at 2pm",
+        "intent_after": "Draft an email to client about project delay",
+        "tools_affected": ["draft_email", "get_contact_info"]
+      },
+      {
+        "turn": 8,
+        "trigger": "Email is drafted and user wants to return to the original task",
+        "user_utterance": "Thanks, that email looks good. Send it. Now, where were we with that meeting? Let's finalize the Tuesday slot.",
+        "intent_before": "Draft an email to client about project delay",
+        "intent_after": "Resume scheduling team meeting for next Tuesday at 2pm",
+        "tools_affected": ["send_email", "schedule_meeting"]
+      }
+    ],
+    "final_intent": "Schedule team meeting for next Tuesday at 2pm (after sending client email about delay)",
+    "expected_end_state": {
+      "email_sent": true,
+      "email_recipient": "client",
+      "email_topic": "project delay",
+      "meeting_scheduled": true,
+      "meeting_day": "next Tuesday",
+      "meeting_time": "14:00"
+    },
+    "ideal_agent_behavior": "Acknowledge the topic shift gracefully. Park the meeting scheduling context. Help draft and send the email. When user returns to meeting topic, restore the previous context (attendees checked, room availability, etc.) without requiring the user to repeat information.",
+    "anti_pattern": "Forgetting the meeting scheduling context after handling the email, forcing the user to re-specify all meeting details.",
+    "expected_tool_call_sequence": [
+      "check_calendar(date='next_tuesday', attendees=['team'])",
+      "check_room_availability(date='next_tuesday', time='14:00')",
+      "get_contact_info(contact='client')",
+      "draft_email(to='client@example.com', subject='Project Timeline Update')",
+      "send_email(draft_id='...')",
+      "schedule_meeting(date='next_tuesday', time='14:00', room='...', attendees=['team'])"
+    ],
+    "difficulty": "medium",
+    "naturalness_score": 5,
+    "num_turns": 11
+  },
+  {
+    "blueprint_id": "T3_constraint_addition-e_commerce-001",
+    "drift_type": "T3_constraint_addition",
+    "domain": "e_commerce",
+    "seed_task_id": "e_commerce_02",
+    "initial_intent": "Find a good laptop for video editing under $1500",
+    "drift_events": [
+      {
+        "turn": 5,
+        "trigger": "Agent has already searched and presented 5 laptop options. User realizes they need specific GPU requirements after seeing the specs.",
+        "user_utterance": "Wait, I should have mentioned — I need at least an NVIDIA RTX 4060 or better for the GPU. Do any of these have that? Also, I need at least 32GB RAM.",
+        "intent_before": "Find a laptop for video editing under $1500",
+        "intent_after": "Find a laptop for video editing under $1500 with RTX 4060+ GPU and 32GB+ RAM",
+        "tools_affected": ["search_products", "get_product_specs"]
+      }
+    ],
+    "final_intent": "Purchase a video editing laptop under $1500 with RTX 4060+ and 32GB+ RAM",
+    "expected_end_state": {
+      "product_found": true,
+      "category": "laptop",
+      "price_under": 1500,
+      "gpu_min": "RTX 4060",
+      "ram_min_gb": 32,
+      "use_case": "video editing"
+    },
+    "ideal_agent_behavior": "Check which of the already-presented options meet the new constraints. If some do, highlight them. If none do, conduct a new search with all constraints (original + new) rather than starting over from scratch. Preserve the user's original requirements (under $1500, video editing) while adding the new ones.",
+    "anti_pattern": "Ignoring the new constraints and continuing to recommend the original options, or completely restarting the search without acknowledging what was already found.",
+    "expected_tool_call_sequence": [
+      "search_products(category='laptop', use_case='video_editing', max_price=1500)",
+      "get_product_specs(product_ids=['...'])",
+      "search_products(category='laptop', use_case='video_editing', max_price=1500, min_gpu='RTX_4060', min_ram=32)"
+    ],
+    "difficulty": "medium",
+    "naturalness_score": 5,
+    "num_turns": 10
+  },
+  {
+    "blueprint_id": "T4_goal_conflict-restaurant-001",
+    "drift_type": "T4_goal_conflict",
+    "domain": "restaurant",
+    "seed_task_id": "restaurant_05",
+    "initial_intent": "Find the cheapest restaurant nearby for dinner tonight",
+    "drift_events": [
+      {
+        "turn": 4,
+        "trigger": "After seeing cheap options, user adds a conflicting requirement",
+        "user_utterance": "These are a bit too casual though. I need somewhere with a nice ambiance — you know, white tablecloths, candlelight, the whole fine dining experience. But still the cheapest option.",
+        "intent_before": "Find cheapest restaurant nearby for dinner tonight",
+        "intent_after": "Find cheapest fine dining restaurant nearby for dinner tonight",
+        "tools_affected": ["search_restaurants"]
+      }
+    ],
+    "final_intent": "Find an affordable fine dining restaurant nearby for dinner (user needs to resolve cheapest vs fine dining tension)",
+    "expected_end_state": {
+      "conflict_identified": true,
+      "clarification_requested": true,
+      "options_presented": "budget-friendly upscale options as compromise",
+      "reservation_made": false
+    },
+    "ideal_agent_behavior": "Detect the tension between 'cheapest' and 'fine dining experience'. Explicitly point out that fine dining and cheapest are somewhat contradictory. Offer options: (a) most affordable fine dining places, (b) mid-range restaurants with nice ambiance, (c) let user set a specific budget. Let the user decide the priority.",
+    "anti_pattern": "Silently dropping the 'cheapest' requirement and showing expensive fine dining, or showing cheap restaurants and ignoring the ambiance requirement, or hallucinating a cheap fine dining option.",
+    "expected_tool_call_sequence": [
+      "search_restaurants(sort_by='price_asc', date='tonight')",
+      "search_restaurants(ambiance='fine_dining', sort_by='price_asc', date='tonight')"
+    ],
+    "difficulty": "medium",
+    "naturalness_score": 5,
+    "num_turns": 10
+  },
+  {
+    "blueprint_id": "T5_implicit_need_emergence-travel-001",
+    "drift_type": "T5_implicit_need_emergence",
+    "domain": "travel",
+    "seed_task_id": "travel_08",
+    "initial_intent": "Book a flight from New York to Tokyo for April 15",
+    "drift_events": [
+      {
+        "turn": 4,
+        "trigger": "Agent books the flight; contextually, a first-time visitor to Tokyo likely needs hotel, transportation, and possibly visa information",
+        "user_utterance": "[User confirms flight booking. Does not explicitly ask for anything else.]",
+        "intent_before": "Book flight NYC to Tokyo on April 15",
+        "intent_after": "Book flight NYC to Tokyo on April 15 + implicit needs: hotel, airport transfer, visa requirements, travel insurance",
+        "tools_affected": ["search_hotels", "check_visa_requirements", "search_airport_transfers"]
+      }
+    ],
+    "final_intent": "Complete Tokyo trip planning (flight + hotel + ground transport + visa check)",
+    "expected_end_state": {
+      "flight_booked": true,
+      "proactive_offers_made": ["hotel_search", "visa_check", "airport_transfer"],
+      "user_accepted_offers": true
+    },
+    "ideal_agent_behavior": "After booking the flight, proactively ask: 'Your flight to Tokyo is booked! Would you also like me to help with hotel accommodations, airport transfers, or check visa requirements for US citizens visiting Japan?' Do not force services but offer them naturally.",
+    "anti_pattern": "Simply confirming the flight booking and going silent, missing the opportunity to anticipate related needs. Or, over-assuming and booking a hotel without asking.",
+    "expected_tool_call_sequence": [
+      "search_flights(origin='NYC', destination='Tokyo', date='2026-04-15')",
+      "book_flight(flight_id='...')",
+      "check_visa_requirements(nationality='US', destination='Japan')",
+      "search_hotels(city='Tokyo', checkin='2026-04-15')",
+      "search_airport_transfers(airport='NRT', destination='hotel')"
+    ],
+    "difficulty": "hard",
+    "naturalness_score": 4,
+    "num_turns": 14
+  },
+  {
+    "blueprint_id": "T6_intent_backtracking-finance-001",
+    "drift_type": "T6_intent_backtracking",
+    "domain": "finance",
+    "seed_task_id": "finance_06",
+    "initial_intent": "Help me choose an investment fund for my retirement savings",
+    "drift_events": [
+      {
+        "turn": 6,
+        "trigger": "Agent presented 3 funds. User chose Fund B (moderate risk, 8% return). Agent began the investment process.",
+        "user_utterance": "Hmm, actually wait. I just talked to my wife and she thinks we should be more conservative since we're also saving for the kids' college. Can we go back to that first option — Fund A, the low-risk one?",
+        "intent_before": "Invest in Fund B (moderate risk)",
+        "intent_after": "Revert to Fund A (low risk, conservative)",
+        "tools_affected": ["cancel_investment", "start_investment"]
+      }
+    ],
+    "final_intent": "Invest retirement savings in Fund A (low-risk conservative fund)",
+    "expected_end_state": {
+      "fund_b_cancelled": true,
+      "fund_a_selected": true,
+      "investment_completed": true,
+      "risk_level": "low"
+    },
+    "ideal_agent_behavior": "Remember the three funds presented earlier. Confirm which fund the user means by 'the first option' (Fund A). Cancel or reverse any pending actions for Fund B. Proceed with Fund A. Acknowledge the reason (family financial planning) and confirm the switch.",
+    "anti_pattern": "Forgetting what Fund A was and asking the user to re-specify. Or failing to cancel the Fund B transaction. Or confusing Fund A and Fund C.",
+    "expected_tool_call_sequence": [
+      "search_investment_funds(category='retirement', risk_levels=['low','moderate','high'])",
+      "get_fund_details(fund_ids=['A','B','C'])",
+      "start_investment(fund_id='B', amount='...')",
+      "cancel_investment(transaction_id='...')",
+      "start_investment(fund_id='A', amount='...')",
+      "confirm_investment(transaction_id='...')"
+    ],
+    "difficulty": "hard",
+    "naturalness_score": 5,
+    "num_turns": 12
+  }
+]

@@ -1,0 +1,93 @@
+% ============================================================
+% Section 5: Evaluation Metrics
+% ============================================================
+\section{Evaluation Metrics}
+\label{sec:metrics}
+
+Static SWE benchmarks typically evaluate agents via a single pass/fail criterion against a repository test suite. Evaluating agents under \drift{}, however, requires capturing not only whether the final code is correct but also \emph{how} the agent responds to intent shifts: does it detect the drift promptly, preserve still-valid work, clean up invalidated code, and seek clarification when appropriate? We propose a primary outcome metric (pass\textsuperscript{k}) and four diagnostic process metrics, all designed to be deterministic or semi-deterministic---no LLM-as-Judge is required for core evaluation.
+
+% ==============================================================
+\subsection{Core Metric: pass\textsuperscript{k}}
+\label{sec:passk}
+% ==============================================================
+
+Following $\tau$-bench~\citep{yao2024taubench}, we adopt \emph{pass\textsuperscript{k}} as the primary evaluation metric. Given $k$ independent runs of an agent on the same task, the estimated pass rate is:
+\begin{equation}
+\label{eq:passk}
+\text{pass}^k = 1 - (1 - \hat{p})^k,
+\end{equation}
+where $\hat{p}$ is the empirical single-run pass rate estimated from $k$ trials. We report both \textbf{pass\textsuperscript{1}} (the probability that a single run succeeds) and \textbf{pass\textsuperscript{4}} (the probability that at least one of four independent runs succeeds), with $k = 4$ independent runs per task at temperature $T = 0.3$.
+
+A task \emph{passes} a single run if and only if three conditions are jointly satisfied:
+\begin{enumerate}[leftmargin=1.5em, itemsep=1pt]
+    \item \textbf{Drift-aware tests pass}: all test cases verifying the drifted intent (\ie, $\mathcal{T}_{\text{drift}}$ from the test harness) pass.
+    \item \textbf{No regression}: all pre-existing repository tests that were passing before the agent's intervention continue to pass.
+    \item \textbf{Code constraints satisfied}: any structural constraints specified in the drift blueprint (\eg, ``do not modify the public API,'' ``preserve backward compatibility'') are verified via automated checks on the final \texttt{git diff}.
+\end{enumerate}
+
+\noindent This three-part criterion ensures that agents are rewarded for holistic correctness---not merely for satisfying the drifted intent while breaking existing functionality.
+
+% ==============================================================
+\subsection{Process Metrics}
+\label{sec:process-metrics}
+% ==============================================================
+
+While pass\textsuperscript{k} captures the final outcome, it does not reveal \emph{how} the agent navigates intent drift. We define four process metrics that diagnose specific aspects of drift-handling behavior. All are computed deterministically or semi-deterministically from the agent's tool-call trace and code state.
+
+\paragraph{Drift Detection Latency (DDL).}
+DDL measures the number of agent turns elapsed between the drift message and the agent's first code edit aligned with the new intent:
+\begin{equation}
+\label{eq:ddl}
+\text{DDL} = t_{\text{aligned\_edit}} - t_{\text{drift}}.
+\end{equation}
+Alignment is determined by checking whether the files and functions modified in the agent's edit overlap with the \emph{drift target}---the set of files and functions specified in the blueprint as requiring modification under the drifted intent. An ideal agent achieves $\text{DDL} \in \{1, 2\}$, indicating that it begins working on the drifted intent within one to two turns of receiving the drift message. High DDL values indicate that the agent continues pursuing the obsolete intent or engages in unnecessary exploration before pivoting.
+
+\paragraph{Context Preservation Score (CPS).}
+CPS assesses whether the agent retains still-valid work across drift boundaries, measured as the ratio of non-redundant post-drift tool calls:
+\begin{equation}
+\label{eq:cps}
+\text{CPS} = 1 - \frac{|\mathcal{Q}_{\text{post}}^{\text{dup}}|}{|\mathcal{Q}_{\text{post}}|},
+\end{equation}
+where $\mathcal{Q}_{\text{post}}$ is the set of tool calls made after the drift event and $\mathcal{Q}_{\text{post}}^{\text{dup}} \subseteq \mathcal{Q}_{\text{post}}$ is the subset whose signatures (\ie, tool name and arguments) duplicate pre-drift calls that remain valid under the new intent. For example, if the agent re-reads a file it already read before the drift and whose content has not changed, this counts as a redundant call. CPS = 1.0 indicates perfect context retention; lower values indicate wasted effort re-gathering information the agent already possessed.
+
+\paragraph{Rollback Rate (T3/T6 only).}
+For drift types that invalidate prior code changes---primarily T3 (constraint addition) and T6 (intent backtracking)---we measure whether the agent correctly removes the invalidated code. This is determined by inspecting the final \texttt{git diff}: the Rollback Rate is 1.0 if the code regions identified in the blueprint as requiring removal are no longer present in the final diff, and 0.0 otherwise. Partial credit is awarded proportionally when only some invalidated regions are cleaned up:
+\begin{equation}
+\label{eq:rollback}
+\text{Rollback} = \frac{|\mathcal{R}_{\text{removed}}|}{|\mathcal{R}_{\text{invalidated}}|},
+\end{equation}
+where $\mathcal{R}_{\text{invalidated}}$ is the set of code regions marked for removal in the blueprint and $\mathcal{R}_{\text{removed}}$ is the subset actually removed by the agent. This metric is only evaluated on T3 and T6 tasks.
+
+\paragraph{Proactive Clarification Rate (PCR, T4/T5 only).}
+For drift types involving ambiguity---T4 (goal conflict) and T5 (implicit need emergence)---PCR measures whether the agent asks a clarifying question before committing to tool calls that implement one interpretation:
+\begin{equation}
+\label{eq:pcr}
+\text{PCR} = \frac{|\{s \in \mathcal{S}_{\text{ambig}} : \text{agent clarifies before first post-drift edit in } s\}|}{|\mathcal{S}_{\text{ambig}}|},
+\end{equation}
+where $\mathcal{S}_{\text{ambig}}$ is the set of T4/T5 tasks. Clarification is detected by scanning the agent's responses between the drift message and the first post-drift \texttt{edit\_file} call for question-form utterances directed at the user. PCR is only evaluated on the T4/T5 subset; it is excluded from aggregation for other drift types.
+
+% ==============================================================
+\subsection{Composite Score}
+\label{sec:composite}
+% ==============================================================
+
+For a single summary statistic, we define the Intent Drift Score (IDS) as a weighted combination:
+\begin{equation}
+\label{eq:ids}
+\text{IDS} = 0.50 \cdot \text{pass}^1 + 0.20 \cdot (1 - \text{DDL}_{\text{norm}}) + 0.15 \cdot \text{CPS} + 0.15 \cdot \text{Aux},
+\end{equation}
+where $\text{DDL}_{\text{norm}} = \min(1,\; \text{DDL} / \tau)$ with horizon $\tau = 10$, and $\text{Aux}$ is the Rollback Rate for T3/T6 tasks or PCR for T4/T5 tasks (set to 1.0 for T1/T2 tasks where neither applies). We emphasize that \textbf{pass\textsuperscript{k} is the primary metric}; the composite IDS and process metrics are diagnostic tools for understanding \emph{why} agents succeed or fail, not replacements for the core outcome measure.
+
+% ==============================================================
+\subsection{Evaluation Protocol}
+\label{sec:eval-protocol}
+% ==============================================================
+
+\paragraph{Deterministic evaluation.}
+All core metrics are computed without LLM-as-Judge. Pass/fail is determined by executing the test harness inside the Docker container. DDL and CPS are computed from the tool-call trace. Rollback Rate is computed from the final \texttt{git diff}. PCR is computed by pattern-matching on agent responses. This fully deterministic protocol eliminates judge variance and ensures exact reproducibility.
+
+\paragraph{Docker isolation.}
+Each evaluation run executes in an isolated Docker container initialized from the repository's pinned commit snapshot. Container state is destroyed after each run, preventing information leakage between trials. The $k = 4$ independent runs per task use separate containers with independent random seeds.
+
+\paragraph{Timeout.}
+Each task has a 30-minute wall-clock timeout. If the agent does not call \texttt{submit()} within the time budget, evaluation proceeds on the current repository state. If the drift trigger condition has not been met by 80\% of the timeout, the drift message is injected at a fallback turn to ensure the task remains evaluable.

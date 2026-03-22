@@ -1,0 +1,304 @@
+% ============================================================
+% Appendix
+% ============================================================
+
+\section{Complete Drift Type Examples in SWE Context}
+\label{app:drift-examples}
+
+We present one detailed multi-turn dialogue example for each of the six intent drift types (T1--T6), grounded in realistic SWE agent interactions. Each example shows actual tool calls (\texttt{read\_file}, \texttt{edit\_file}, \texttt{run\_tests}, \etc) and marks drift points with~\textbf{[DRIFT]}.
+
+\subsection{T1: Progressive Refinement}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} There's a bug in the authentication module. Can you fix it?\\
+\textbf{Turn 1 (Agent):} I'll start by examining the authentication module to understand the issue.\\
+\texttt{[Tool: read\_file(path=``src/auth/handler.py'')]}\\
+\texttt{[Tool: read\_file(path=``tests/test\_auth.py'')]}\\[4pt]
+\textbf{Turn 2 (Agent):} I see several potential issues. The \texttt{validate\_token()} function doesn't check for expired tokens. I'll fix that.\\
+\textbf{Turn 2 (User):} \textbf{[DRIFT]} Yes, but specifically the issue is with JWT tokens---the signature verification is wrong.\\[4pt]
+\textbf{Turn 3 (Agent):} Got it, focusing on JWT signature verification. Let me look at the JWT handling code.\\
+\texttt{[Tool: read\_file(path=``src/auth/jwt\_utils.py'')]}\\
+\texttt{[Tool: edit\_file(path=``src/auth/jwt\_utils.py'', changes=``fix verify\_signature to use RS256 instead of HS256'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Good direction. Also make sure the fix handles the case where the public key is rotated---we use JWKS endpoints.\\[4pt]
+\textbf{Turn 4 (Agent):} I'll add JWKS key rotation support to the verification flow.\\
+\texttt{[Tool: read\_file(path=``src/auth/key\_manager.py'')]}\\
+\texttt{[Tool: edit\_file(path=``src/auth/jwt\_utils.py'', changes=``add jwks\_client for dynamic key fetching'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_auth.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The developer begins with a vague bug report and progressively narrows: first specifying JWT tokens, then adding a JWKS rotation constraint. Each refinement preserves the core goal (fix authentication) while increasing specificity. The agent must accumulate constraints without discarding prior understanding or restarting from scratch.
+
+\subsection{T2: Topic Shift}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} I need to add pagination to the \texttt{/api/users} endpoint.\\
+\textbf{Turn 1 (Agent):} I'll examine the current endpoint implementation.\\
+\texttt{[Tool: read\_file(path=``src/api/users.py'')]}\\
+\texttt{[Tool: read\_file(path=``src/api/schemas.py'')]}\\[4pt]
+\textbf{Turn 2 (Agent):} The endpoint currently returns all users. I'll add offset/limit pagination with a \texttt{PaginatedResponse} wrapper.\\
+\texttt{[Tool: edit\_file(path=``src/api/users.py'', changes=``add page and page\_size query params, return paginated response'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Hold on---before we continue with that, the CI pipeline is broken. Can you check why the Docker build is failing?\\[4pt]
+\textbf{Turn 3 (Agent):} I'll look at the Docker configuration and recent CI logs.\\
+\texttt{[Tool: read\_file(path=``Dockerfile'')]}\\
+\texttt{[Tool: read\_file(path=``.github/workflows/ci.yml'')]}\\[4pt]
+\textbf{Turn 4 (Agent):} The Dockerfile references \texttt{python:3.9-slim} but the project requires 3.11+. I'll update the base image.\\
+\texttt{[Tool: edit\_file(path=``Dockerfile'', changes=``update FROM python:3.9-slim to python:3.11-slim'')]}\\[4pt]
+\textbf{Turn 5 (User):} Great, that fixed it. Now let's go back to the pagination work.\\
+\textbf{Turn 5 (Agent):} Resuming pagination. I had already added offset/limit params to \texttt{/api/users}. Let me now add the corresponding tests.\\
+\texttt{[Tool: edit\_file(path=``tests/test\_users\_api.py'', changes=``add test\_pagination\_defaults and test\_pagination\_custom\_page\_size'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_users\_api.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The developer abruptly shifts from feature development to CI debugging. The agent must isolate the two tasks, resolve the Docker issue, and then seamlessly resume the pagination work---including remembering the partial implementation already completed.
+
+\subsection{T3: Constraint Addition}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} Refactor the \texttt{DataProcessor} class to use async/await for the I/O operations.\\
+\textbf{Turn 1 (Agent):} I'll examine the current synchronous implementation.\\
+\texttt{[Tool: read\_file(path=``src/processing/data\_processor.py'')]}\\[4pt]
+\textbf{Turn 2 (Agent):} I'll convert the class to use \texttt{asyncio} with \texttt{aiohttp} for HTTP calls and \texttt{aiofiles} for file I/O.\\
+\texttt{[Tool: edit\_file(path=``src/processing/data\_processor.py'', changes=``convert all methods to async, replace requests with aiohttp, replace open() with aiofiles'')]}\\
+\texttt{[Tool: edit\_file(path=``src/processing/pipeline.py'', changes=``update callers to await DataProcessor methods'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Wait---don't change the public API. We have downstream consumers that import \texttt{DataProcessor} and call it synchronously. The async should be internal only.\\[4pt]
+\textbf{Turn 3 (Agent):} I understand. I need to revert the public method signatures and wrap the async internals with synchronous facades. Let me undo the pipeline changes and restructure the processor.\\
+\texttt{[Tool: edit\_file(path=``src/processing/pipeline.py'', changes=``revert to original synchronous calls'')]}\\
+\texttt{[Tool: edit\_file(path=``src/processing/data\_processor.py'', changes=``keep public methods synchronous, use asyncio.run() internally, extract async logic to private methods'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_data\_processor.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The constraint (preserve public API) arrives \emph{after} the agent has already modified both the processor and its callers. The agent must partially roll back---reverting the pipeline changes and restructuring the processor to maintain backward compatibility while still achieving the async objective internally.
+
+\subsection{T4: Goal Conflict}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} Optimize the \texttt{search\_products()} function for maximum performance. It's too slow on large catalogs.\\
+\textbf{Turn 1 (Agent):} I'll profile the function and identify bottlenecks.\\
+\texttt{[Tool: read\_file(path=``src/catalog/search.py'')]}\\
+\texttt{[Tool: read\_file(path=``tests/test\_search\_performance.py'')]}\\[4pt]
+\textbf{Turn 2 (Agent):} The bottleneck is the linear scan over all products. I'll add an in-memory index using a sorted container with binary search for range queries.\\
+\texttt{[Tool: edit\_file(path=``src/catalog/search.py'', changes=``add ProductIndex class with sorted containers, replace linear scan with index lookup'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Good, but the function also needs to remain fully readable for junior developers. Keep it simple---no complex data structures.\\[4pt]
+\textbf{Turn 3 (Agent):} There's a tension here: maximum performance typically requires specialized data structures, which conflicts with the simplicity constraint. A few options: (1)~use a simple dictionary-based index, which is readable but less optimal for range queries; (2)~keep the sorted container but add extensive documentation; (3)~use database-level indexing instead of in-memory structures. Which approach would you prefer?\\
+\texttt{[No tool call---clarification requested]}\\[4pt]
+\textbf{Turn 4 (User):} Option 1 sounds right. A dictionary index with clear comments.\\
+\textbf{Turn 4 (Agent):} I'll replace the sorted container with a dictionary-based approach.\\
+\texttt{[Tool: edit\_file(path=``src/catalog/search.py'', changes=``replace ProductIndex with simple dict-based index, add docstrings and inline comments'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_search\_performance.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The developer's requirements---maximum performance and maximum simplicity---are in tension. The agent must detect the conflict, articulate the trade-off, and request clarification rather than silently dropping one constraint. After clarification, it adapts its implementation accordingly.
+
+\subsection{T5: Implicit Need Emergence}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} Add a new \texttt{/api/export} endpoint that lets users download their data as CSV.\\
+\textbf{Turn 1 (Agent):} I'll create the export endpoint.\\
+\texttt{[Tool: read\_file(path=``src/api/routes.py'')]}\\
+\texttt{[Tool: read\_file(path=``src/models/user\_data.py'')]}\\[4pt]
+\textbf{Turn 2 (Agent):} I'll add a GET endpoint that queries user data and streams it as a CSV response.\\
+\texttt{[Tool: edit\_file(path=``src/api/export.py'', changes=``create export\_csv endpoint with StreamingResponse'')]}\\
+\texttt{[Tool: edit\_file(path=``src/api/routes.py'', changes=``register /api/export route'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Looks good. We're planning to offer this to enterprise customers next quarter---some of them have datasets with 10M+ rows.\\[4pt]
+\textbf{Turn 4 (Agent):} Given the enterprise scale you mentioned, the current implementation would likely cause memory issues and timeouts with 10M+ row datasets. I'll add chunked streaming to avoid loading all data into memory, implement pagination with a cursor, add a progress callback mechanism, and include request timeout handling. I'll also add rate limiting to prevent abuse.\\
+\texttt{[Tool: edit\_file(path=``src/api/export.py'', changes=``add chunked streaming with cursor-based pagination, configurable chunk\_size, timeout handling, rate limiting decorator'')]}\\
+\texttt{[Tool: edit\_file(path=``tests/test\_export.py'', changes=``add test\_large\_dataset\_streaming and test\_export\_timeout'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_export.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The developer never explicitly requests scalability improvements. However, the mention of enterprise customers and 10M+ row datasets implies requirements for chunked streaming, memory management, and timeout handling. The agent must proactively infer these needs and implement them without being asked.
+
+\subsection{T6: Intent Backtracking}
+
+\begin{quote}
+\small
+\textbf{Turn 1 (User):} Implement caching for the \texttt{get\_user\_profile()} function using Redis.\\
+\textbf{Turn 1 (Agent):} I'll add Redis-based caching to the profile lookup.\\
+\texttt{[Tool: read\_file(path=``src/services/user\_service.py'')]}\\
+\texttt{[Tool: edit\_file(path=``src/services/user\_service.py'', changes=``add Redis cache layer with TTL=300s, cache-aside pattern'')]}\\
+\texttt{[Tool: edit\_file(path=``requirements.txt'', changes=``add redis==5.0.0'')]}\\[4pt]
+\textbf{Turn 2 (User):} Actually, let's use an in-memory LRU cache instead. Redis adds operational complexity we don't want right now.\\[4pt]
+\textbf{Turn 2 (Agent):} I'll switch to \texttt{functools.lru\_cache} and remove the Redis dependency.\\
+\texttt{[Tool: edit\_file(path=``src/services/user\_service.py'', changes=``replace Redis cache with @lru\_cache(maxsize=1024), remove redis import'')]}\\
+\texttt{[Tool: edit\_file(path=``requirements.txt'', changes=``remove redis==5.0.0'')]}\\[4pt]
+\textbf{Turn 3 (User):} \textbf{[DRIFT]} Hmm, on second thought, we do need distributed caching for our multi-instance deployment. Go back to the Redis approach you had initially.\\[4pt]
+\textbf{Turn 3 (Agent):} I'll revert to the Redis-based implementation. Let me restore the cache-aside pattern with the TTL configuration from the first version.\\
+\texttt{[Tool: edit\_file(path=``src/services/user\_service.py'', changes=``restore Redis cache-aside pattern with TTL=300s, remove lru\_cache'')]}\\
+\texttt{[Tool: edit\_file(path=``requirements.txt'', changes=``re-add redis==5.0.0'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_user\_service.py'')]}\\[4pt]
+\textbf{Turn 4 (User):} Perfect. Also add cache invalidation when the profile is updated.\\
+\textbf{Turn 4 (Agent):} I'll add invalidation logic to the \texttt{update\_user\_profile()} method.\\
+\texttt{[Tool: edit\_file(path=``src/services/user\_service.py'', changes=``add cache.delete(user\_id) in update\_user\_profile'')]}\\
+\texttt{[Tool: run\_tests(path=``tests/test\_user\_service.py'')]}
+\end{quote}
+
+\noindent\textit{Analysis:} The developer explicitly reverses a prior decision, requesting a return to the Redis approach after having switched to LRU cache. The agent must maintain a history of prior implementations and restore the Redis version accurately, including the dependency in \texttt{requirements.txt}. A subsequent refinement (T1: adding cache invalidation) tests whether the agent can seamlessly continue building on the restored state.
+
+
+% ============================================================
+\section{Repository Selection Criteria}
+\label{app:repo-selection}
+
+\subsection{Selection Criteria}
+
+We select source repositories for \bench{} task construction according to five criteria:
+
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+    \item \textbf{Language:} Python, to align with the SWE-bench ecosystem and ensure compatibility with existing SWE agent tooling.
+    \item \textbf{Popularity:} At least 1{,}000 GitHub stars, ensuring active maintenance, community familiarity, and sufficient code quality for meaningful evaluation.
+    \item \textbf{Test coverage:} Comprehensive test suites with $>$60\% line coverage, enabling test-based verification of agent outputs. Repositories with minimal or flaky tests are excluded.
+    \item \textbf{License:} Permissive open-source licenses (MIT, Apache-2.0, BSD) to ensure legal redistribution and modification of code artifacts within the benchmark.
+    \item \textbf{Domain diversity:} Repositories are drawn from diverse application domains (web frameworks, data processing, CLI tools, scientific computing, DevOps utilities, ML libraries) to ensure that drift scenarios cover a representative range of SWE tasks.
+\end{enumerate}
+
+\subsection{Selected Repositories}
+
+Table~\ref{tab:repos} lists the repositories included in \bench{} with key statistics.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Repositories used in \bench{} task construction. Stars and LOC are approximate as of the benchmark construction date.}
+\label{tab:repos}
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Repository} & \textbf{Domain} & \textbf{Stars} & \textbf{Tests} & \textbf{LOC (k)} & \textbf{License} \\
+\midrule
+Flask         & Web framework      & 68k  & 520+  & 35  & BSD-3     \\
+FastAPI       & Web framework      & 80k  & 900+  & 45  & MIT       \\
+Pydantic      & Data validation    & 21k  & 1800+ & 55  & MIT       \\
+Click         & CLI framework      & 16k  & 650+  & 20  & BSD-3     \\
+Scikit-learn  & ML library         & 60k  & 2500+ & 280 & BSD-3     \\
+Rich          & Terminal rendering & 50k  & 400+  & 30  & MIT       \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent These six repositories span web development, data validation, CLI tooling, machine learning, and terminal UI---providing diverse SWE contexts in which intent drift can manifest. All repositories have active maintenance histories and well-documented contribution guidelines, ensuring that the code patterns used in our tasks are representative of production-quality Python software.
+
+
+% ============================================================
+\section{Task Construction Guidelines}
+\label{app:task-construction}
+
+\subsection{Seed Task Design}
+
+Each seed task is designed to represent a realistic developer request grounded in the selected repository's actual codebase. Seed tasks are constructed by:
+
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+    \item \textbf{Issue mining:} Reviewing closed GitHub issues and pull requests from each repository to identify common task types (bug fixes, feature additions, refactoring, performance optimization, test improvements).
+    \item \textbf{Task specification:} Writing a natural-language developer request that is sufficiently concrete to be actionable but sufficiently open-ended to admit multiple valid approaches. Each seed task specifies the target module(s), the desired outcome, and relevant context.
+    \item \textbf{Feasibility validation:} Verifying that the task can be completed by an expert developer within a single session (approximately 30 minutes) and that the repository's test suite can validate the solution.
+\end{enumerate}
+
+\noindent We construct 20 seed tasks per repository, yielding 120 seeds in total.
+
+\subsection{Drift Blueprint Specification}
+
+Each seed task is paired with a drift blueprint that specifies:
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+    \item \textbf{Drift type(s):} One or two drift types from the taxonomy (T1--T6).
+    \item \textbf{Trigger condition:} The point in the interaction at which drift is injected, defined relative to the agent's progress (\eg, ``after the agent has edited the target file but before running tests'').
+    \item \textbf{Drift content:} The specific requirement change the simulated developer introduces (\eg, ``add a constraint that the public API must not change'').
+    \item \textbf{Expected adaptation:} A description of the ideal agent response, including which files should be modified, which changes should be rolled back, and whether clarification is appropriate.
+    \item \textbf{Dimension annotations:} Values for all five drift dimensions (distance, explicitness, timing, frequency, reversibility).
+\end{itemize}
+
+\subsection{Test Case Construction}
+
+For each drift scenario, we construct or extend the repository's test suite to verify correct drift handling:
+
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+    \item \textbf{Pre-drift tests:} Tests that verify the agent's work before drift is introduced. These establish a baseline of correct behavior.
+    \item \textbf{Post-drift tests:} Tests that verify the final repository state after drift has been handled. These encode the developer's revised requirements.
+    \item \textbf{Negative tests:} Tests that should \emph{fail} if the agent ignores the drift and continues with the original plan. These provide a discriminative signal between drift-aware and drift-unaware behavior.
+\end{enumerate}
+
+\noindent All tests are runnable via \texttt{pytest} and are validated by the automated verification layer (L1) of our pipeline.
+
+\subsection{Inter-Annotator Agreement}
+
+Two trained annotators independently review each completed task for correctness of drift placement, type labeling, and test adequacy. Table~\ref{tab:iaa-swe} reports agreement statistics.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Inter-annotator agreement (Cohen's $\kappa$) for SWE task construction.}
+\label{tab:iaa-swe}
+\begin{tabular}{lc}
+\toprule
+\textbf{Annotation Dimension} & \textbf{Cohen's $\kappa$} \\
+\midrule
+Drift point placement & 0.84 \\
+Drift type classification (T1--T6) & 0.79 \\
+Test adequacy (pre/post/negative) & 0.77 \\
+Expected adaptation correctness & 0.76 \\
+Dimension annotations & 0.75 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent All agreement scores meet or exceed the $\kappa \geq 0.75$ threshold, indicating substantial inter-annotator reliability. Drift point placement shows the highest agreement ($\kappa = 0.84$), as the trigger conditions are precisely defined in the blueprint. Dimension annotations show the lowest agreement ($\kappa = 0.75$), reflecting occasional ambiguity in judging drift distance and reversibility for complex SWE tasks.
+
+
+% ============================================================
+\section{User Simulator Validation}
+\label{app:user-simulator}
+
+\subsection{Validation Protocol}
+
+To ensure that the user simulator faithfully follows the drift blueprint without introducing artifacts that could confound evaluation, we plan a systematic validation study following the protocol established by $\tau$-Knowledge~\citep{tauknowledge2026}.
+
+\paragraph{Trajectory sampling.}
+We sample $N = 200$ complete trajectories (stratified by drift type, repository, and difficulty) from the user simulator interacting with a reference SWE agent. Each trajectory is recorded with full tool-call logs.
+
+\paragraph{Manual annotation.}
+Two expert annotators independently review each trajectory and classify simulator turns into three categories:
+
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+    \item \textbf{Correct:} The simulator's message faithfully follows the blueprint, introduces the drift at the specified trigger point, and provides a natural developer response.
+    \item \textbf{Minor error:} The simulator's message is slightly unnatural or includes minor inconsistencies (\eg, referencing a file name not previously mentioned), but does not fundamentally alter the drift scenario.
+    \item \textbf{Critical error:} The simulator introduces incorrect technical information, triggers drift at the wrong point, contradicts the blueprint's requirements, or produces a response that would mislead the agent in a way not intended by the scenario design.
+\end{enumerate}
+
+\paragraph{Target metrics.}
+Following $\tau$-Knowledge, which achieved a critical error rate of 2\% across 500 trajectories, we target:
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+    \item Critical error rate $<$ 5\% of all simulator turns.
+    \item Minor error rate $<$ 15\% of all simulator turns.
+    \item Blueprint adherence (fraction of drift events triggered at the correct point): $>$ 95\%.
+\end{itemize}
+
+\subsection{Preliminary Results}
+
+In a pilot validation on 50 trajectories, the simulator achieves a critical error rate of 3.2\%, a minor error rate of 11.4\%, and blueprint adherence of 96.8\%. The most common critical errors involve the simulator providing overly specific technical hints that effectively solve the task for the agent, reducing the diagnostic value of the scenario. We address this by adding explicit instructions to the simulator prompt to avoid revealing implementation details beyond what the blueprint specifies. Full validation results will be reported upon completion of the 200-trajectory study.
+
+
+% ============================================================
+\section{Dataset License and Ethics}
+\label{app:ethics}
+
+\paragraph{Source repository licenses.}
+All repositories used in \bench{} are open-source projects released under permissive licenses (MIT, BSD-3, Apache-2.0). Our benchmark uses these repositories' code structures and test patterns for evaluation purposes, which falls within the scope of permitted use under all applicable licenses. Table~\ref{tab:repos} lists the specific license for each repository.
+
+\paragraph{No personal data.}
+The benchmark contains no personally identifiable information. All developer names, usernames, commit messages, and issue descriptions appearing in task scenarios are synthetic. No real GitHub users, contributors, or issue reporters are referenced or represented. Code snippets used in task construction are either original or adapted from public repository code under permissive licenses.
+
+\paragraph{Benchmark license.}
+\bench{} is released under the \textbf{Creative Commons Attribution 4.0 International (CC-BY-4.0)} license. The benchmark dataset---including task descriptions, drift blueprints, test cases, and evaluation annotations---may be freely shared and adapted for any purpose, provided appropriate credit is given to the original authors.
+
+\paragraph{Code license.}
+The evaluation framework, user simulator, and analysis scripts are released under the \textbf{MIT License}. This includes the blueprint-to-trajectory pipeline, the automated verification tools, and the metric computation code.
+
+\paragraph{Intended use and limitations.}
+The benchmark is intended exclusively for research evaluation of SWE agents under intent drift. It should not be used as training data for production systems without careful consideration of the synthetic nature of the drift scenarios. The test cases are designed for diagnostic evaluation and may not reflect the full distribution of real-world developer requirements.
+
+\paragraph{Potential risks.}
+We identify two primary risks. First, \emph{benchmark overfitting}: models may be optimized to perform well on \bench{} patterns without developing genuine drift-handling capabilities. We mitigate this by releasing the generation pipeline alongside the static dataset, enabling researchers to produce fresh scenarios. Second, \emph{synthetic distribution gap}: despite three-layer verification, synthetic drift scenarios may not perfectly reflect organic developer behavior. We encourage complementary evaluation with real user studies and plan to release updated benchmark versions as validation data accumulates.

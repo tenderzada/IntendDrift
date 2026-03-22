@@ -1,0 +1,146 @@
+[
+  {
+    "id": "restaurant_01",
+    "task": "Find a highly-rated sushi restaurant in downtown San Francisco",
+    "description": "The user wants to find sushi restaurants in downtown San Francisco with at least 4.5 stars, open for dinner tonight, and within walking distance of Union Square.",
+    "complexity": "simple",
+    "required_tools": ["restaurant_search", "review_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "restaurant_02",
+    "task": "Reserve a table for 4 at a specific Italian restaurant on Saturday evening",
+    "description": "The user wants to book a table for 4 people at Osteria Francescana for Saturday at 7:30 PM, with a preference for a window seat, and needs to note a shellfish allergy for one guest.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_lookup", "reservation_booking", "special_request_handler"],
+    "expected_turns": 5
+  },
+  {
+    "id": "restaurant_03",
+    "task": "View the full menu and prices for a local Thai restaurant",
+    "description": "The user wants to see the complete menu including appetizers, mains, desserts, and drinks for a Thai restaurant, with prices, spice levels, and identification of which items are vegetarian.",
+    "complexity": "simple",
+    "required_tools": ["restaurant_lookup", "menu_retrieval"],
+    "expected_turns": 3
+  },
+  {
+    "id": "restaurant_04",
+    "task": "Find restaurants with gluten-free and vegan options near a hotel",
+    "description": "The user is staying at a hotel in midtown Manhattan and has both celiac disease and a vegan diet. They need dinner options within a 10-minute walk that can accommodate both dietary restrictions.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_search", "dietary_filter", "menu_retrieval", "distance_calculator"],
+    "expected_turns": 5
+  },
+  {
+    "id": "restaurant_05",
+    "task": "Read recent reviews for a newly opened French bistro",
+    "description": "The user wants to read the most recent reviews for a new French bistro, filter by verified diners, and see average ratings broken down by food quality, service, ambiance, and value.",
+    "complexity": "simple",
+    "required_tools": ["restaurant_lookup", "review_lookup", "review_filter"],
+    "expected_turns": 3
+  },
+  {
+    "id": "restaurant_06",
+    "task": "Compare prices across three steakhouses for a business dinner",
+    "description": "The user wants to compare three specific steakhouses in Chicago for a business dinner of 6 people, looking at prix fixe menu prices, wine list pricing, private dining fees, and overall cost estimates.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_lookup", "menu_retrieval", "price_comparison"],
+    "expected_turns": 5
+  },
+  {
+    "id": "restaurant_07",
+    "task": "Book a private dining room for a birthday party of 20 guests",
+    "description": "The user is planning a birthday dinner for 20 people and needs a private dining room at a restaurant in Boston, with a set menu option, cake allowance, and AV equipment for a slideshow.",
+    "complexity": "complex",
+    "required_tools": ["restaurant_search", "group_booking", "private_dining_inquiry", "menu_retrieval", "special_request_handler"],
+    "expected_turns": 7
+  },
+  {
+    "id": "restaurant_08",
+    "task": "Order delivery from a Chinese restaurant for a family dinner",
+    "description": "The user wants to order delivery for 5 people from a Chinese restaurant, selecting a mix of dishes including appetizers and mains, checking estimated delivery time, and applying a promo code.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_lookup", "menu_retrieval", "delivery_order", "promo_code_apply", "payment_processing"],
+    "expected_turns": 6
+  },
+  {
+    "id": "restaurant_09",
+    "task": "Get personalized cuisine recommendations based on preferences",
+    "description": "The user enjoys spicy food, prefers small plates and tapas-style dining, has a budget of $50 per person, and wants recommendations for a date night in Austin, Texas.",
+    "complexity": "moderate",
+    "required_tools": ["cuisine_recommender", "restaurant_search", "review_lookup"],
+    "expected_turns": 4
+  },
+  {
+    "id": "restaurant_10",
+    "task": "Check current wait times at popular brunch spots",
+    "description": "The user wants to find out the current wait times at three popular brunch restaurants in Portland on a Sunday morning, and join the virtual waitlist at the one with the shortest wait.",
+    "complexity": "simple",
+    "required_tools": ["wait_time_check", "waitlist_join"],
+    "expected_turns": 4
+  },
+  {
+    "id": "restaurant_11",
+    "task": "Find restaurants open late night after a concert",
+    "description": "The user is attending a concert ending at 11 PM near Madison Square Garden and wants to find restaurants still serving food after 11:30 PM within a 15-minute walk.",
+    "complexity": "simple",
+    "required_tools": ["restaurant_search", "hours_filter"],
+    "expected_turns": 3
+  },
+  {
+    "id": "restaurant_12",
+    "task": "Plan a restaurant crawl through a neighborhood",
+    "description": "The user wants to plan a progressive dinner across 4 restaurants in the Mission District of San Francisco: cocktails at one, appetizers at another, main course at a third, and dessert at a fourth, with walking routes between them.",
+    "complexity": "complex",
+    "required_tools": ["restaurant_search", "menu_retrieval", "route_planner", "reservation_booking"],
+    "expected_turns": 8
+  },
+  {
+    "id": "restaurant_13",
+    "task": "Find a restaurant with outdoor seating and live music tonight",
+    "description": "The user wants to find a restaurant in Nashville with a patio or rooftop seating that has live music tonight, serving Southern or BBQ cuisine, for a group of 3.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_search", "amenity_filter", "event_lookup", "reservation_booking"],
+    "expected_turns": 5
+  },
+  {
+    "id": "restaurant_14",
+    "task": "Compare food delivery platforms for the best deal",
+    "description": "The user wants to order from a specific pizza restaurant and wants to compare delivery fees, estimated times, and available promotions across UberEats, DoorDash, and Grubhub.",
+    "complexity": "moderate",
+    "required_tools": ["delivery_platform_search", "price_comparison", "promo_search"],
+    "expected_turns": 4
+  },
+  {
+    "id": "restaurant_15",
+    "task": "Find Michelin-starred restaurants with availability this weekend",
+    "description": "The user is visiting London and wants to dine at a Michelin-starred restaurant this Saturday, checking availability across multiple starred restaurants and comparing tasting menu prices.",
+    "complexity": "complex",
+    "required_tools": ["restaurant_search", "rating_filter", "availability_check", "menu_retrieval", "reservation_booking"],
+    "expected_turns": 6
+  },
+  {
+    "id": "restaurant_16",
+    "task": "Find kid-friendly restaurants near a theme park",
+    "description": "The user is visiting Disneyland with two children aged 4 and 7 and needs restaurant recommendations nearby with kids' menus, high chairs, and quick service times.",
+    "complexity": "simple",
+    "required_tools": ["restaurant_search", "family_filter", "menu_retrieval"],
+    "expected_turns": 4
+  },
+  {
+    "id": "restaurant_17",
+    "task": "Organize a multi-course wine pairing dinner",
+    "description": "The user wants to find a restaurant in Napa Valley that offers a chef's tasting menu with wine pairings for an anniversary dinner, learn about the courses and wines, and make a reservation with a special occasion note.",
+    "complexity": "complex",
+    "required_tools": ["restaurant_search", "menu_retrieval", "wine_list_lookup", "reservation_booking", "special_request_handler"],
+    "expected_turns": 7
+  },
+  {
+    "id": "restaurant_18",
+    "task": "Resolve a billing issue from a recent restaurant visit",
+    "description": "The user was double-charged for a meal at a restaurant last night and wants to look up the restaurant's contact information, understand their refund policy, and initiate a dispute if needed.",
+    "complexity": "moderate",
+    "required_tools": ["restaurant_lookup", "billing_inquiry", "dispute_handler"],
+    "expected_turns": 5
+  }
+]

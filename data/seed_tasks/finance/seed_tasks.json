@@ -1,0 +1,146 @@
+[
+  {
+    "id": "finance_01",
+    "task": "Check account balances across all linked bank accounts",
+    "description": "The user wants to see the current balances for their checking, savings, and investment accounts, including pending transactions that might affect available balance.",
+    "complexity": "simple",
+    "required_tools": ["account_balance_lookup", "account_list"],
+    "expected_turns": 3
+  },
+  {
+    "id": "finance_02",
+    "task": "Transfer money from savings to checking to cover an upcoming bill",
+    "description": "The user needs to transfer $2,500 from their savings account to their checking account before a mortgage payment is auto-debited tomorrow, and wants confirmation of the transfer.",
+    "complexity": "simple",
+    "required_tools": ["account_balance_lookup", "fund_transfer", "transfer_confirmation"],
+    "expected_turns": 4
+  },
+  {
+    "id": "finance_03",
+    "task": "Pay multiple utility bills in one session",
+    "description": "The user wants to pay their electricity, water, and internet bills from their checking account, viewing each bill amount and due date before confirming payments.",
+    "complexity": "moderate",
+    "required_tools": ["bill_list", "bill_details", "bill_payment", "payment_confirmation"],
+    "expected_turns": 6
+  },
+  {
+    "id": "finance_04",
+    "task": "Check the performance of an investment portfolio",
+    "description": "The user wants to review their stock portfolio performance over the past 3 months, see individual stock gains/losses, overall return percentage, and compare against the S&P 500 benchmark.",
+    "complexity": "moderate",
+    "required_tools": ["portfolio_lookup", "stock_performance", "benchmark_comparison"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_05",
+    "task": "Inquire about personal loan options and eligibility",
+    "description": "The user wants to explore personal loan options for a $15,000 home renovation, comparing interest rates, loan terms, monthly payment estimates, and checking their pre-qualification status.",
+    "complexity": "moderate",
+    "required_tools": ["loan_search", "loan_calculator", "eligibility_check"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_06",
+    "task": "Apply for a new credit card with travel rewards",
+    "description": "The user wants to compare travel rewards credit cards, understand annual fees, sign-up bonuses, foreign transaction fees, and lounge access benefits, then submit an application for the preferred card.",
+    "complexity": "complex",
+    "required_tools": ["credit_card_search", "card_comparison", "benefit_details", "application_submit"],
+    "expected_turns": 7
+  },
+  {
+    "id": "finance_07",
+    "task": "Review transaction history and identify suspicious charges",
+    "description": "The user noticed an unfamiliar charge on their credit card and wants to review the last 30 days of transactions, identify any other suspicious charges, and flag them for investigation.",
+    "complexity": "moderate",
+    "required_tools": ["transaction_history", "transaction_details", "fraud_report"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_08",
+    "task": "Set up a monthly budget and categorize expenses",
+    "description": "The user wants to create a monthly budget based on their income, categorize last month's spending into housing, food, transport, entertainment, and savings, and identify areas to cut back.",
+    "complexity": "complex",
+    "required_tools": ["transaction_history", "expense_categorizer", "budget_creator", "spending_analysis"],
+    "expected_turns": 7
+  },
+  {
+    "id": "finance_09",
+    "task": "Convert USD to EUR and find the best exchange rate",
+    "description": "The user is traveling to Europe and wants to convert $3,000 to euros, comparing exchange rates from their bank, online services, and airport kiosks, and lock in the best rate.",
+    "complexity": "simple",
+    "required_tools": ["currency_exchange_rate", "exchange_comparison"],
+    "expected_turns": 4
+  },
+  {
+    "id": "finance_10",
+    "task": "Estimate quarterly tax payment for freelance income",
+    "description": "The user is a freelancer who earned $28,000 in Q1 and needs to estimate their quarterly tax payment, accounting for deductible business expenses of $5,000 and self-employment tax.",
+    "complexity": "moderate",
+    "required_tools": ["tax_calculator", "deduction_estimator", "payment_scheduler"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_11",
+    "task": "Set up automatic recurring transfers to a savings goal",
+    "description": "The user wants to save $6,000 for a vacation over the next 12 months by setting up automatic weekly transfers from checking to a dedicated savings account.",
+    "complexity": "simple",
+    "required_tools": ["savings_goal_setup", "recurring_transfer_setup"],
+    "expected_turns": 4
+  },
+  {
+    "id": "finance_12",
+    "task": "Refinance a mortgage and compare offers",
+    "description": "The user has a 30-year mortgage at 6.5% and wants to explore refinancing options, comparing rates from multiple lenders, estimating closing costs, and calculating break-even points.",
+    "complexity": "complex",
+    "required_tools": ["mortgage_search", "rate_comparison", "refinance_calculator", "closing_cost_estimator"],
+    "expected_turns": 7
+  },
+  {
+    "id": "finance_13",
+    "task": "Dispute a charge and request a chargeback",
+    "description": "The user purchased a product online that was never delivered and wants to dispute the $350 charge on their credit card, providing order details and initiating a formal chargeback process.",
+    "complexity": "moderate",
+    "required_tools": ["transaction_details", "dispute_filing", "document_upload"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_14",
+    "task": "Analyze spending trends over the past year",
+    "description": "The user wants to see a breakdown of their spending trends over the past 12 months, identify months with unusually high spending, and see category-level changes over time.",
+    "complexity": "moderate",
+    "required_tools": ["transaction_history", "spending_analysis", "trend_visualization"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_15",
+    "task": "Open a new high-yield savings account",
+    "description": "The user wants to compare high-yield savings accounts from online banks, looking at APY rates, minimum balance requirements, withdrawal limits, and FDIC insurance, then open the best option.",
+    "complexity": "moderate",
+    "required_tools": ["savings_account_search", "account_comparison", "account_opening"],
+    "expected_turns": 5
+  },
+  {
+    "id": "finance_16",
+    "task": "Set up bill reminders and autopay for recurring expenses",
+    "description": "The user wants to see all their recurring bills, set up autopay for fixed-amount bills, and create reminders for variable bills that need review before payment.",
+    "complexity": "moderate",
+    "required_tools": ["bill_list", "autopay_setup", "reminder_setup"],
+    "expected_turns": 6
+  },
+  {
+    "id": "finance_17",
+    "task": "Calculate retirement savings projections",
+    "description": "The user is 35 years old, currently has $120,000 in a 401(k), contributes $500/month, and wants to project their retirement savings at age 65 under different market return scenarios.",
+    "complexity": "complex",
+    "required_tools": ["retirement_calculator", "projection_modeler", "contribution_optimizer"],
+    "expected_turns": 6
+  },
+  {
+    "id": "finance_18",
+    "task": "Send an international wire transfer",
+    "description": "The user needs to send $5,000 to a family member's bank account in India, providing beneficiary details, understanding wire transfer fees, exchange rates, and expected delivery time.",
+    "complexity": "complex",
+    "required_tools": ["wire_transfer_setup", "currency_exchange_rate", "fee_calculator", "beneficiary_validation", "transfer_confirmation"],
+    "expected_turns": 7
+  }
+]

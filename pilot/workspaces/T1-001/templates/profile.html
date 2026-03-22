@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ user.name }} - Profile</title></head>
+<body>
+    <h1>{{ user.name }}</h1>
+    <p>Email: {{ user.email }}</p>
+    <h2>Bio</h2>
+    <!-- BUG: .upper() crashes when bio is None -->
+    <p class="bio">{{ user.bio.upper() }}</p>
+    <a href="/">Back to directory</a>
+</body>
+</html>

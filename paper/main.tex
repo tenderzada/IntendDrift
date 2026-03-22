@@ -1,0 +1,90 @@
+\documentclass{article}
+
+% NeurIPS 2025/2026 style (submission mode with line numbers)
+\usepackage{neurips_2025}  % NeurIPS style file (using 2025 template)
+
+% Standard packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{pifont}  % for \ding checkmarks
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amsthm}
+
+\newtheorem{definition}{Definition}
+
+% Custom commands
+\newcommand{\drift}{\textsc{IntentDrift}}
+\newcommand{\bench}{\textsc{IntentDrift-SWE}}
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\cf}{\textit{cf.}}
+\newcommand{\etal}{\textit{et al.}}
+
+\title{IntentDrift-SWE: Evaluating Software Engineering Agents \\ Under Dynamic Requirement Evolution}
+
+\author{
+  Anonymous Author(s)
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+LLM-powered software engineering agents are increasingly deployed to assist developers in fixing bugs, implementing features, and refactoring code within real repositories. Existing benchmarks such as SWE-bench evaluate these agents under an implicit assumption: the user's requirement is static and fully specified from the outset. In practice, however, requirements dynamically evolve during multi-turn coding sessions---developers progressively narrow the scope of a bug, add constraints after partial implementation, shift to an unrelated task mid-session, express contradictory goals, or harbor implicit expectations (e.g., tests, documentation) that surface only through interaction. This mismatch leads to systematic overestimation of agent capabilities.
+
+We introduce \bench{}, a benchmark for evaluating SWE agents under dynamic requirement evolution. Our contributions are threefold. First, we propose a \emph{taxonomy of six intent drift patterns}---progressive refinement, topic shift, constraint addition, goal conflict, implicit need emergence, and intent backtracking---grounded in real developer workflows with AI coding assistants. Second, we construct an executable benchmark of 100+ tasks across 5--8 popular Python repositories, each equipped with a Docker environment, an environment-coupled user simulator that triggers drift based on the agent's code state, and deterministic test-based evaluation with the $\text{pass}^k$ reliability metric. Third, we propose complementary process metrics---Drift Detection Latency (DDL), Context Preservation Score (CPS), and Rollback Rate---all computed deterministically without LLM-as-judge. Evaluating 5 frontier models, we find that requirement drift causes a substantial performance drop compared to static baselines, with constraint addition and intent backtracking proving most challenging. Our results demonstrate that current SWE benchmarks significantly overestimate agents' real-world capability to handle the iterative, evolving nature of software development.
+\end{abstract}
+
+% ============================================================
+\input{introduction}
+% ============================================================
+
+% ============================================================
+\input{related_work}
+% ============================================================
+
+% ============================================================
+\input{taxonomy}
+% ============================================================
+
+% ============================================================
+\input{benchmark}
+% ============================================================
+
+% ============================================================
+\input{metrics}
+% ============================================================
+
+% ============================================================
+\input{experiments}
+% ============================================================
+
+% ============================================================
+\input{discussion}
+% ============================================================
+
+\bibliographystyle{plainnat}
+\bibliography{references_key}
+
+% ============================================================
+\appendix
+\input{appendix}
+% ============================================================
+
+\end{document}

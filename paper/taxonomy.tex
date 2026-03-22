@@ -1,0 +1,110 @@
+% ============================================================
+% Section 3: Intent Drift Taxonomy
+% ============================================================
+
+\section{Intent Drift Taxonomy}
+\label{sec:taxonomy}
+
+We present a principled taxonomy of \drift{} grounded in dialogue systems theory and human--computer interaction research. We first formalize intent states and drift events (\S\ref{sec:formalization}), then define six canonical drift patterns (\S\ref{sec:six-patterns}) and five orthogonal dimensions (\S\ref{sec:dimensions}), and finally discuss compound drift (\S\ref{sec:compound}).
+
+% ------------------------------------------------------------
+\subsection{Formalization}
+\label{sec:formalization}
+
+\begin{definition}[Intent State]
+\label{def:intent-state}
+At each conversational turn $t$, the user's intent state is a triple
+\begin{equation}
+    I_t = \bigl(g_t,\; C_t,\; \xi_t\bigr),
+    \label{eq:intent-state}
+\end{equation}
+where $g_t \in \mathcal{G}$ is the user's \emph{goal} (\eg, ``fix the authentication bug''), $C_t = \{c_t^1, \ldots, c_t^m\}$ is a set of \emph{constraints} (\eg, do not change the public API, must pass CI), and $\xi_t \in \mathcal{X}$ encodes the accumulated \emph{code context} up to turn $t$---files read, changes made, and test results observed.
+\end{definition}
+
+\begin{definition}[Intent Drift Event]
+\label{def:drift-event}
+An \emph{intent drift event} between turns $t$ and $t{+}k$ ($k \geq 1$) is a non-trivial transition
+\begin{equation}
+    \Delta(I_t, I_{t+k}) = \bigl(\delta_g,\; \delta_C,\; \delta_\xi\bigr), \quad \text{where } \|\Delta\| > 0,
+    \label{eq:drift-event}
+\end{equation}
+with component deltas $\delta_g = g_{t+k} \ominus g_t$, $\delta_C = C_{t+k} \setminus C_t$, and $\delta_\xi = \xi_{t+k} - \xi_t$.
+\end{definition}
+
+We quantify drift magnitude via a \emph{drift distance} function:
+\begin{equation}
+    d(I_t, I_{t+k}) = \alpha \cdot d_{\text{sem}}(g_t, g_{t+k}) + \beta \cdot \frac{|C_t \mathbin{\triangle} C_{t+k}|}{|C_t \cup C_{t+k}|} + \gamma \cdot d_{\text{ctx}}(\xi_t, \xi_{t+k}),
+    \label{eq:drift-distance}
+\end{equation}
+where $d_{\text{sem}}(\cdot,\cdot)$ is a semantic similarity distance over goal embeddings, $\triangle$ denotes the symmetric difference of constraint sets, and $d_{\text{ctx}}$ captures contextual shift (\eg, divergence in the set of files under consideration). Weights $\alpha + \beta + \gamma = 1$ are set empirically.
+
+\paragraph{Mapping to existing frameworks.}
+Our taxonomy aligns with the TUNA framework \citep{tuna2025}, which organizes user--agent interactions into 6 modes, 14 strategies, and 57 request types. Each drift pattern (T1--T6) maps to one or more TUNA modes: \eg, Progressive Refinement corresponds to the \emph{Iterative Specification} mode, while Topic Shift maps to \emph{Task Switching}. We additionally adopt dialogue act annotations from ISO 24617-2 \citep{iso24617} to label each turn and draw on goal change phenomena documented in the Dialogue State Tracking Challenge \citep{dstc}.
+
+% ------------------------------------------------------------
+\subsection{Six Drift Patterns}
+\label{sec:six-patterns}
+
+Table~\ref{tab:drift-types} summarizes all six canonical patterns. Each is formally defined below.
+
+\begin{table}[t]
+\centering
+\caption{The six canonical intent drift patterns. For each type we list its formal signature, a representative SWE example, the primary challenge it poses to a coding agent, and the corresponding TUNA mode.}
+\label{tab:drift-types}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llp{4.2cm}p{3.6cm}l@{}}
+\toprule
+\textbf{ID} & \textbf{Pattern} & \textbf{Example (SWE)} & \textbf{Agent Challenge} & \textbf{TUNA Mode} \\
+\midrule
+T1 & Progressive Refinement & ``Fix a bug'' $\to$ ``it's in the auth module'' $\to$ ``specifically JWT validation in \texttt{auth/tokens.py}'' & Narrow investigation incrementally; do not restart search from scratch & Iterative Spec. \\
+T2 & Topic Shift & Midway through debugging, user asks ``wait, first review this PR for me'' & Context isolation; preserve debugging state (files opened, hypotheses formed) & Task Switching \\
+T3 & Constraint Addition & ``Add caching to the query layer'' $\to$ agent begins $\to$ ``it must be thread-safe and use Redis'' & Assess which code already written is still valid vs.\ needs rewriting & Constraint Mod. \\
+T4 & Goal Conflict & ``Make it faster but don't change the algorithm'' & Recognize infeasibility; ask which constraint to relax & Conflict Resolution \\
+T5 & Implicit Need Emergence & User asks to add a feature; implicitly expects tests, documentation, and type hints & Proactively write tests and docs without being explicitly asked & Latent Elicitation \\
+T6 & Intent Backtracking & ``Implement with approach A'' $\to$ halfway done $\to$ ``go back to approach B'' & Clean up partial implementation before switching approach & State Reversion \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\textbf{T1: Progressive Refinement.}\quad $g_t = g_{t+k}$ and $C_{t+k} \supset C_t$: the goal is preserved but the constraint set grows monotonically. The agent must narrow its investigation incrementally---reusing files already read, hypotheses already formed, and search results already obtained---rather than restarting from scratch at each refinement step.
+
+\textbf{T2: Topic Shift.}\quad $d_{\text{sem}}(g_t, g_{t+k}) > \tau_{\text{shift}}$: the user switches to a semantically distant goal. The agent must isolate the new context (\eg, a PR review) from the prior task (\eg, a debugging session) without losing the accumulated debugging state---open files, candidate root causes, and partially applied patches.
+
+\textbf{T3: Constraint Addition.}\quad $g_t = g_{t+k}$ and $C_{t+k} \supsetneq C_t$, but new constraints invalidate prior code changes. Unlike T1, the critical challenge is that the agent may have already written code (\eg, a non-thread-safe cache) that must now be partially or fully rewritten to satisfy the added constraints.
+
+\textbf{T4: Goal Conflict.}\quad $\exists\; c_i, c_j \in C_{t+k}$ such that $c_i \wedge c_j = \bot$: mutually exclusive constraints co-exist. The agent must detect the inconsistency---\eg, that meaningful speedup is infeasible without algorithmic changes---and engage in clarification rather than silently dropping a constraint.
+
+\textbf{T5: Implicit Need Emergence.}\quad $\exists\; c^* \notin C_t$ such that $c^*$ is inferable from $\xi_t$ but never explicitly stated. The agent must proactively identify latent requirements: a feature addition in a well-tested codebase implicitly demands unit tests, type annotations, and docstring updates, even when the user does not mention them.
+
+\textbf{T6: Intent Backtracking.}\quad $I_{t+k} \approx I_{t'}$ for some $t' < t$: the user reverts to a previously abandoned intent state. The agent must maintain a history of prior implementation states, cleanly remove or revert the partial work from the abandoned approach, and restore the earlier code context before proceeding with the preferred approach.
+
+% ------------------------------------------------------------
+\subsection{Orthogonal Drift Dimensions}
+\label{sec:dimensions}
+
+Each drift event, regardless of its type (T1--T6), can be independently characterized along five orthogonal dimensions:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=2pt]
+    \item \textbf{Drift Distance} $d \in \{\textit{near}, \textit{medium}, \textit{far}\}$. Near drift preserves the task domain (\eg, narrowing a bug from module-level to function-level); far drift crosses domains entirely (\eg, debugging $\to$ writing deployment scripts). Operationalized via $d(I_t, I_{t+k})$ from Eq.~\eqref{eq:drift-distance}.
+    \item \textbf{Explicitness} $e \in \{\textit{explicit}, \textit{implicit}\}$. Explicit drift is signaled by overt user utterances (``actually, use Redis instead''); implicit drift must be inferred from indirect cues (\eg, a failing CI log that implies a constraint the user has not verbalized).
+    \item \textbf{Timing} $\tau \in \{\textit{early}, \textit{mid}, \textit{late}\}$. Early drift (first 25\% of turns) is less costly; late drift (final 25\%) may require undoing substantial prior implementation work, including already-committed code changes.
+    \item \textbf{Frequency} $f \in \{\textit{single}, \textit{multiple}, \textit{high}\}$. Single drift occurs once; high-frequency drift ($\geq 4$ events) stresses the agent's ability to maintain coherent file-editing state across repeated pivots.
+    \item \textbf{Reversibility} $r \in \{\textit{irreversible}, \textit{partially}, \textit{fully\ reversible}\}$. Determined by whether executed code changes can be undone (\eg, git-revertable edits vs.\ database migrations already applied, or destructive file deletions).
+\end{enumerate}
+
+\noindent These dimensions yield a combinatorial space of $6 \times 3 \times 2 \times 3 \times 3 \times 3 = 972$ distinct drift configurations, from which \bench{} samples representative cells to ensure broad coverage (\cf~\S\ref{sec:benchmark}).
+
+% ------------------------------------------------------------
+\subsection{Compound Drift Patterns}
+\label{sec:compound}
+
+Real-world coding interactions rarely exhibit a single, isolated drift event. Instead, multiple drift types interleave and compound throughout a session. We identify three common compound patterns:
+
+\textbf{Refinement + Constraint Addition (T1$\oplus$T3).}\quad A user progressively narrows the scope of a bug fix (T1), then introduces a hard constraint that invalidates prior changes (T3). For example, a developer iteratively localizes a performance issue to a specific database query, and the agent begins optimizing it---then the user adds ``it must remain compatible with the read-replica setup,'' requiring the agent to re-evaluate its optimization strategy. The compound difficulty arises because the agent must distinguish incremental scope narrowing from constraint-breaking additions.
+
+\textbf{Topic Shift + Backtracking (T2$\oplus$T6).}\quad A user shifts to an unrelated task mid-session (T2)---\eg, interrupting a refactoring effort to review an urgent PR---and later returns to the original task (T6), expecting all prior context (modified files, planned next steps, test results) to be intact. The agent must maintain parallel task states and perform seamless context restoration.
+
+\textbf{Conflict + Refinement (T4$\oplus$T1).}\quad A user issues contradictory requirements (T4)---\eg, ``make the API response time under 50ms but keep the synchronous architecture''---and upon clarification, progressively refines toward a consistent goal (T1). The agent must first resolve the conflict, ideally via proactive clarification, then smoothly transition into incremental implementation.
+
+Compound drift complexity scales super-linearly: handling $n$ interleaved drift events requires maintaining $O(n)$ state snapshots and reasoning over $O(n^2)$ potential interactions between drift events. We formalize this in \bench{} by constructing compound scenarios with controlled drift sequences and measuring the marginal performance degradation per additional drift event (\cf~\S\ref{sec:experiments}).

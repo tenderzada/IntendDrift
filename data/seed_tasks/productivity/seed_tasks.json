@@ -1,0 +1,146 @@
+[
+  {
+    "id": "productivity_01",
+    "task": "Schedule a recurring weekly team standup meeting",
+    "description": "The user wants to create a recurring 15-minute standup meeting every Monday at 9 AM for the engineering team of 8 people, finding a time that works for everyone and sending calendar invites.",
+    "complexity": "moderate",
+    "required_tools": ["calendar_availability_check", "calendar_event_create", "contact_lookup", "invite_send"],
+    "expected_turns": 5
+  },
+  {
+    "id": "productivity_02",
+    "task": "Draft a professional email declining a meeting invitation",
+    "description": "The user received a meeting invitation that conflicts with a higher-priority commitment and wants to draft a polite email declining, suggesting alternative times, and offering to send notes instead.",
+    "complexity": "simple",
+    "required_tools": ["calendar_event_lookup", "email_draft", "email_send"],
+    "expected_turns": 4
+  },
+  {
+    "id": "productivity_03",
+    "task": "Set up a video conference with international participants across time zones",
+    "description": "The user needs to schedule a 1-hour meeting with participants in New York, London, and Tokyo, finding a time that falls within business hours for all three time zones and generating a video conference link.",
+    "complexity": "moderate",
+    "required_tools": ["timezone_converter", "calendar_availability_check", "meeting_create", "invite_send"],
+    "expected_turns": 5
+  },
+  {
+    "id": "productivity_04",
+    "task": "Search for a specific document shared last month",
+    "description": "The user remembers a quarterly sales report that a colleague shared via email or cloud drive sometime last month but cannot find it. They want to search across email, Google Drive, and Slack.",
+    "complexity": "simple",
+    "required_tools": ["email_search", "document_search", "message_search"],
+    "expected_turns": 3
+  },
+  {
+    "id": "productivity_05",
+    "task": "Create and prioritize a task list for a product launch",
+    "description": "The user needs to create a structured task list for an upcoming product launch in 3 weeks, assign priorities, set deadlines, and assign tasks to 4 team members.",
+    "complexity": "complex",
+    "required_tools": ["task_create", "task_assign", "deadline_set", "priority_set", "contact_lookup"],
+    "expected_turns": 7
+  },
+  {
+    "id": "productivity_06",
+    "task": "Find a colleague's phone number and schedule a call",
+    "description": "The user needs to reach a specific person in the marketing department, look up their contact information in the company directory, and schedule a 30-minute phone call for this afternoon.",
+    "complexity": "simple",
+    "required_tools": ["contact_lookup", "calendar_availability_check", "calendar_event_create"],
+    "expected_turns": 4
+  },
+  {
+    "id": "productivity_07",
+    "task": "Take meeting notes and distribute action items",
+    "description": "The user just finished a project meeting and wants to organize their raw notes into a structured summary with key decisions, action items with owners, and deadlines, then send it to all attendees.",
+    "complexity": "moderate",
+    "required_tools": ["note_create", "note_format", "email_draft", "email_send"],
+    "expected_turns": 5
+  },
+  {
+    "id": "productivity_08",
+    "task": "Set multiple reminders for the day's errands and deadlines",
+    "description": "The user has a busy day and needs reminders: pick up dry cleaning at 3 PM, submit a report by 5 PM, call the dentist before noon, and buy groceries after work.",
+    "complexity": "simple",
+    "required_tools": ["reminder_create"],
+    "expected_turns": 3
+  },
+  {
+    "id": "productivity_09",
+    "task": "Share a large file securely with external stakeholders",
+    "description": "The user needs to share a 500MB design file with a client, setting up a secure sharing link with an expiration date, password protection, and download tracking.",
+    "complexity": "moderate",
+    "required_tools": ["file_upload", "share_link_create", "security_settings", "notification_send"],
+    "expected_turns": 5
+  },
+  {
+    "id": "productivity_10",
+    "task": "Create a project timeline with milestones and dependencies",
+    "description": "The user is planning a 3-month software project and needs to create a timeline with 8 milestones, define task dependencies, identify the critical path, and share the Gantt chart with the team.",
+    "complexity": "complex",
+    "required_tools": ["project_create", "milestone_create", "dependency_set", "timeline_generate", "share_link_create"],
+    "expected_turns": 8
+  },
+  {
+    "id": "productivity_11",
+    "task": "Reschedule all meetings for a sick day",
+    "description": "The user is feeling sick and needs to cancel or reschedule all 4 meetings on today's calendar, send apology emails to attendees, and propose new times for the rescheduled ones.",
+    "complexity": "complex",
+    "required_tools": ["calendar_event_list", "calendar_event_update", "calendar_availability_check", "email_draft", "email_send"],
+    "expected_turns": 7
+  },
+  {
+    "id": "productivity_12",
+    "task": "Organize inbox by archiving old emails and creating filters",
+    "description": "The user has an overflowing inbox with 2,000 unread emails and wants to bulk-archive newsletters older than 30 days, create filters for recurring senders, and set up labels for key projects.",
+    "complexity": "moderate",
+    "required_tools": ["email_search", "email_bulk_action", "email_filter_create", "label_create"],
+    "expected_turns": 6
+  },
+  {
+    "id": "productivity_13",
+    "task": "Prepare a weekly status update email for the manager",
+    "description": "The user wants to compile their completed tasks, in-progress work, and blockers from the past week into a formatted status update email for their manager.",
+    "complexity": "moderate",
+    "required_tools": ["task_list", "task_status_lookup", "email_draft", "email_send"],
+    "expected_turns": 4
+  },
+  {
+    "id": "productivity_14",
+    "task": "Set up an out-of-office auto-reply for a vacation",
+    "description": "The user is going on vacation for 2 weeks and needs to set up an out-of-office auto-reply with a custom message, specify the date range, and designate an alternate contact for urgent matters.",
+    "complexity": "simple",
+    "required_tools": ["auto_reply_setup", "contact_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "productivity_15",
+    "task": "Coordinate a team lunch poll and booking",
+    "description": "The user wants to send a poll to 10 team members to vote on a lunch restaurant, collect responses by tomorrow noon, and book a reservation at the winning restaurant for Friday.",
+    "complexity": "moderate",
+    "required_tools": ["poll_create", "poll_send", "poll_results", "restaurant_search", "reservation_booking"],
+    "expected_turns": 6
+  },
+  {
+    "id": "productivity_16",
+    "task": "Consolidate notes from multiple meetings into a project brief",
+    "description": "The user has notes from 5 different meetings over the past 2 weeks and wants to extract key decisions, merge them into a coherent project brief document, and share it with stakeholders.",
+    "complexity": "complex",
+    "required_tools": ["note_search", "note_retrieve", "document_create", "document_edit", "share_link_create"],
+    "expected_turns": 7
+  },
+  {
+    "id": "productivity_17",
+    "task": "Block focus time on the calendar for deep work",
+    "description": "The user wants to block 2-hour focus time slots every morning from Tuesday to Thursday for the next month, marking them as busy and declining any conflicting meeting invitations.",
+    "complexity": "moderate",
+    "required_tools": ["calendar_event_create", "calendar_event_list", "calendar_event_update"],
+    "expected_turns": 4
+  },
+  {
+    "id": "productivity_18",
+    "task": "Create an agenda and send pre-read materials for a board meeting",
+    "description": "The user is organizing a quarterly board meeting and needs to create a detailed agenda, attach 3 pre-read documents, send the package to 12 board members, and request RSVPs by a deadline.",
+    "complexity": "complex",
+    "required_tools": ["document_create", "file_attach", "email_draft", "email_send", "rsvp_tracker", "calendar_event_create"],
+    "expected_turns": 8
+  }
+]

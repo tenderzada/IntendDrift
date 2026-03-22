@@ -1,0 +1,327 @@
+[
+  {
+    "name": "search_code",
+    "description": "Search for code snippets, patterns, or symbols across a codebase",
+    "parameters": {
+      "query": {"type": "string", "description": "Search query (keyword, function name, or regex pattern)", "required": true},
+      "language": {"type": "string", "description": "Programming language filter", "required": false, "enum": ["python", "javascript", "typescript", "java", "cpp", "go", "rust", "ruby", "csharp", "swift"]},
+      "repo": {"type": "string", "description": "Repository name or path to search in", "required": false},
+      "file_pattern": {"type": "string", "description": "File glob pattern (e.g., *.py, src/**/*.ts)", "required": false},
+      "search_type": {"type": "string", "description": "Type of search", "required": false, "enum": ["text", "regex", "symbol", "definition", "reference"]}
+    },
+    "returns": "List of matching code locations with file path, line number, and surrounding context"
+  },
+  {
+    "name": "read_file",
+    "description": "Read the contents of a file from a repository or local filesystem",
+    "parameters": {
+      "file_path": {"type": "string", "description": "Path to the file to read", "required": true},
+      "start_line": {"type": "integer", "description": "Starting line number (1-based)", "required": false},
+      "end_line": {"type": "integer", "description": "Ending line number", "required": false},
+      "repo": {"type": "string", "description": "Repository name if reading from a remote repo", "required": false},
+      "branch": {"type": "string", "description": "Branch name", "required": false}
+    },
+    "returns": "File contents with line numbers, language detection, and file metadata"
+  },
+  {
+    "name": "write_file",
+    "description": "Write or overwrite the contents of a file",
+    "parameters": {
+      "file_path": {"type": "string", "description": "Path to the file to write", "required": true},
+      "content": {"type": "string", "description": "Content to write to the file", "required": true},
+      "create_directories": {"type": "boolean", "description": "Create parent directories if they don't exist", "required": false}
+    },
+    "returns": "Confirmation of file write with file size and path"
+  },
+  {
+    "name": "edit_file",
+    "description": "Apply targeted edits to specific lines or sections of a file",
+    "parameters": {
+      "file_path": {"type": "string", "description": "Path to the file to edit", "required": true},
+      "edits": {"type": "array", "description": "List of edit objects with start_line, end_line, and new_content", "required": true}
+    },
+    "returns": "Updated file content diff showing changes made"
+  },
+  {
+    "name": "run_code",
+    "description": "Execute code in a specified programming language",
+    "parameters": {
+      "code": {"type": "string", "description": "Code to execute", "required": true},
+      "language": {"type": "string", "description": "Programming language", "required": true, "enum": ["python", "javascript", "typescript", "java", "cpp", "go", "rust", "ruby", "bash"]},
+      "stdin": {"type": "string", "description": "Standard input to provide", "required": false},
+      "timeout_seconds": {"type": "integer", "description": "Execution timeout in seconds", "required": false},
+      "args": {"type": "array", "description": "Command line arguments", "required": false}
+    },
+    "returns": "Execution output including stdout, stderr, exit code, and execution time"
+  },
+  {
+    "name": "run_tests",
+    "description": "Run test suites or specific test cases",
+    "parameters": {
+      "test_path": {"type": "string", "description": "Path to test file or directory", "required": true},
+      "framework": {"type": "string", "description": "Testing framework", "required": false, "enum": ["pytest", "jest", "mocha", "junit", "go_test", "rspec", "unittest"]},
+      "pattern": {"type": "string", "description": "Test name pattern to filter", "required": false},
+      "verbose": {"type": "boolean", "description": "Show verbose output", "required": false},
+      "coverage": {"type": "boolean", "description": "Generate coverage report", "required": false}
+    },
+    "returns": "Test results with pass/fail counts, failed test details, and coverage report if requested"
+  },
+  {
+    "name": "lint_code",
+    "description": "Run linting and static analysis on code",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File or directory to lint", "required": true},
+      "linter": {"type": "string", "description": "Linter to use", "required": false, "enum": ["eslint", "pylint", "flake8", "rubocop", "golint", "clippy", "checkstyle"]},
+      "fix": {"type": "boolean", "description": "Auto-fix fixable issues", "required": false},
+      "config_path": {"type": "string", "description": "Path to linter config file", "required": false}
+    },
+    "returns": "Linting results with issues by severity, file, and line number, plus auto-fix summary if applied"
+  },
+  {
+    "name": "format_code",
+    "description": "Auto-format code according to style rules",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File or directory to format", "required": true},
+      "formatter": {"type": "string", "description": "Code formatter to use", "required": false, "enum": ["prettier", "black", "gofmt", "rustfmt", "clang_format", "rubocop"]},
+      "config_path": {"type": "string", "description": "Path to formatter config", "required": false},
+      "check_only": {"type": "boolean", "description": "Only check if formatting is needed, don't apply", "required": false}
+    },
+    "returns": "Formatting results with files modified and diff of changes"
+  },
+  {
+    "name": "git_commit",
+    "description": "Create a git commit with staged changes",
+    "parameters": {
+      "message": {"type": "string", "description": "Commit message", "required": true},
+      "files": {"type": "array", "description": "Files to stage before committing (stages all if empty)", "required": false},
+      "amend": {"type": "boolean", "description": "Amend the previous commit", "required": false}
+    },
+    "returns": "Commit hash, files committed, and insertions/deletions summary"
+  },
+  {
+    "name": "git_diff",
+    "description": "Show differences between commits, branches, or working tree",
+    "parameters": {
+      "target": {"type": "string", "description": "Branch, commit, or file to diff against", "required": false},
+      "file_path": {"type": "string", "description": "Specific file to show diff for", "required": false},
+      "staged": {"type": "boolean", "description": "Show staged changes only", "required": false}
+    },
+    "returns": "Diff output with file changes, insertions, and deletions"
+  },
+  {
+    "name": "git_log",
+    "description": "View git commit history",
+    "parameters": {
+      "limit": {"type": "integer", "description": "Number of commits to show", "required": false},
+      "branch": {"type": "string", "description": "Branch to show history for", "required": false},
+      "author": {"type": "string", "description": "Filter by author", "required": false},
+      "since": {"type": "string", "description": "Show commits after this date (YYYY-MM-DD)", "required": false},
+      "file_path": {"type": "string", "description": "Show history for specific file", "required": false}
+    },
+    "returns": "List of commits with hash, author, date, and message"
+  },
+  {
+    "name": "create_branch",
+    "description": "Create a new git branch",
+    "parameters": {
+      "branch_name": {"type": "string", "description": "Name of the new branch", "required": true},
+      "from_branch": {"type": "string", "description": "Base branch to create from", "required": false},
+      "checkout": {"type": "boolean", "description": "Switch to the new branch after creation", "required": false}
+    },
+    "returns": "Branch creation confirmation with current branch info"
+  },
+  {
+    "name": "create_pull_request",
+    "description": "Create a pull request on a remote repository",
+    "parameters": {
+      "title": {"type": "string", "description": "PR title", "required": true},
+      "body": {"type": "string", "description": "PR description", "required": true},
+      "source_branch": {"type": "string", "description": "Source branch", "required": true},
+      "target_branch": {"type": "string", "description": "Target branch to merge into", "required": true},
+      "reviewers": {"type": "array", "description": "Reviewer usernames", "required": false},
+      "labels": {"type": "array", "description": "Labels to apply", "required": false},
+      "draft": {"type": "boolean", "description": "Create as draft PR", "required": false}
+    },
+    "returns": "PR URL, number, and status"
+  },
+  {
+    "name": "search_issues",
+    "description": "Search for issues or bugs in a project tracker",
+    "parameters": {
+      "repo": {"type": "string", "description": "Repository name", "required": true},
+      "query": {"type": "string", "description": "Search query", "required": false},
+      "status": {"type": "string", "description": "Issue status", "required": false, "enum": ["open", "closed", "all"]},
+      "labels": {"type": "array", "description": "Filter by labels", "required": false},
+      "assignee": {"type": "string", "description": "Filter by assignee", "required": false}
+    },
+    "returns": "List of issues with number, title, status, labels, assignee, and creation date"
+  },
+  {
+    "name": "create_issue",
+    "description": "Create a new issue or bug report in a project tracker",
+    "parameters": {
+      "repo": {"type": "string", "description": "Repository name", "required": true},
+      "title": {"type": "string", "description": "Issue title", "required": true},
+      "body": {"type": "string", "description": "Issue description", "required": true},
+      "labels": {"type": "array", "description": "Labels to apply", "required": false},
+      "assignees": {"type": "array", "description": "Assignee usernames", "required": false},
+      "milestone": {"type": "string", "description": "Milestone to associate with", "required": false}
+    },
+    "returns": "Created issue with number, URL, and assigned labels"
+  },
+  {
+    "name": "install_package",
+    "description": "Install a package or dependency using the appropriate package manager",
+    "parameters": {
+      "package_name": {"type": "string", "description": "Package name to install", "required": true},
+      "version": {"type": "string", "description": "Specific version to install", "required": false},
+      "manager": {"type": "string", "description": "Package manager", "required": false, "enum": ["pip", "npm", "yarn", "cargo", "go", "gem", "maven", "nuget"]},
+      "dev_dependency": {"type": "boolean", "description": "Install as dev dependency", "required": false}
+    },
+    "returns": "Installation result with installed version and any dependency changes"
+  },
+  {
+    "name": "search_packages",
+    "description": "Search for packages in a package registry",
+    "parameters": {
+      "query": {"type": "string", "description": "Search query", "required": true},
+      "registry": {"type": "string", "description": "Package registry to search", "required": false, "enum": ["pypi", "npm", "crates", "rubygems", "maven", "nuget"]},
+      "sort_by": {"type": "string", "description": "Sort results by", "required": false, "enum": ["relevance", "downloads", "stars", "updated"]}
+    },
+    "returns": "List of packages with name, version, description, downloads, and repository link"
+  },
+  {
+    "name": "debug_error",
+    "description": "Analyze an error message or stack trace and suggest fixes",
+    "parameters": {
+      "error_message": {"type": "string", "description": "Error message or stack trace", "required": true},
+      "language": {"type": "string", "description": "Programming language", "required": false},
+      "code_context": {"type": "string", "description": "Surrounding code for context", "required": false},
+      "file_path": {"type": "string", "description": "File where error occurred", "required": false}
+    },
+    "returns": "Error analysis with root cause, explanation, and suggested fixes with code examples"
+  },
+  {
+    "name": "generate_documentation",
+    "description": "Generate documentation for code (docstrings, API docs, README sections)",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File to generate docs for", "required": true},
+      "doc_type": {"type": "string", "description": "Type of documentation", "required": true, "enum": ["docstring", "api_reference", "usage_example", "changelog"]},
+      "format": {"type": "string", "description": "Documentation format", "required": false, "enum": ["markdown", "rst", "jsdoc", "javadoc", "google_style"]}
+    },
+    "returns": "Generated documentation content"
+  },
+  {
+    "name": "refactor_code",
+    "description": "Suggest or apply refactoring to improve code quality",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File to refactor", "required": true},
+      "refactor_type": {"type": "string", "description": "Type of refactoring", "required": true, "enum": ["extract_function", "rename", "extract_variable", "inline", "simplify", "optimize", "modernize"]},
+      "target": {"type": "string", "description": "Target symbol or line range for refactoring", "required": false},
+      "apply": {"type": "boolean", "description": "Apply the refactoring (false for preview only)", "required": false}
+    },
+    "returns": "Refactoring suggestions or applied changes with before/after diff"
+  },
+  {
+    "name": "get_type_info",
+    "description": "Get type information, function signature, or documentation for a symbol",
+    "parameters": {
+      "symbol": {"type": "string", "description": "Symbol name (function, class, variable)", "required": true},
+      "file_path": {"type": "string", "description": "File containing the symbol", "required": false},
+      "language": {"type": "string", "description": "Programming language", "required": false}
+    },
+    "returns": "Type information, function signature, parameters, return type, and documentation"
+  },
+  {
+    "name": "run_build",
+    "description": "Run the build process for a project",
+    "parameters": {
+      "build_command": {"type": "string", "description": "Build command to run (auto-detected if empty)", "required": false},
+      "target": {"type": "string", "description": "Build target", "required": false, "enum": ["debug", "release", "test", "production"]},
+      "clean": {"type": "boolean", "description": "Clean build artifacts before building", "required": false}
+    },
+    "returns": "Build result with success/failure, output, warnings, errors, and build time"
+  },
+  {
+    "name": "analyze_dependencies",
+    "description": "Analyze project dependencies for updates, vulnerabilities, or conflicts",
+    "parameters": {
+      "project_path": {"type": "string", "description": "Path to the project root", "required": true},
+      "check_type": {"type": "string", "description": "Type of analysis", "required": false, "enum": ["outdated", "vulnerabilities", "unused", "duplicates", "licenses"]}
+    },
+    "returns": "Dependency analysis report with findings and recommended actions"
+  },
+  {
+    "name": "create_scaffold",
+    "description": "Generate boilerplate code or project scaffolding",
+    "parameters": {
+      "template": {"type": "string", "description": "Template type", "required": true, "enum": ["api_endpoint", "model", "component", "test", "migration", "config", "project"]},
+      "name": {"type": "string", "description": "Name for the generated entity", "required": true},
+      "language": {"type": "string", "description": "Programming language", "required": true},
+      "options": {"type": "object", "description": "Template-specific options", "required": false}
+    },
+    "returns": "Generated files with paths and content"
+  },
+  {
+    "name": "profile_code",
+    "description": "Profile code execution for performance analysis",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File to profile", "required": true},
+      "function_name": {"type": "string", "description": "Specific function to profile", "required": false},
+      "profile_type": {"type": "string", "description": "Type of profiling", "required": false, "enum": ["cpu", "memory", "line_by_line", "call_graph"]},
+      "iterations": {"type": "integer", "description": "Number of iterations for benchmarking", "required": false}
+    },
+    "returns": "Profiling results with hotspots, timing data, memory usage, and optimization suggestions"
+  },
+  {
+    "name": "search_documentation",
+    "description": "Search official documentation for a library, framework, or language",
+    "parameters": {
+      "query": {"type": "string", "description": "Search query", "required": true},
+      "library": {"type": "string", "description": "Library or framework name", "required": false},
+      "language": {"type": "string", "description": "Programming language", "required": false}
+    },
+    "returns": "Relevant documentation excerpts with links, code examples, and related topics"
+  },
+  {
+    "name": "get_code_metrics",
+    "description": "Calculate code quality metrics for a file or project",
+    "parameters": {
+      "file_path": {"type": "string", "description": "File or directory to analyze", "required": true},
+      "metrics": {"type": "array", "description": "Specific metrics to calculate", "required": false, "enum": ["complexity", "loc", "maintainability", "test_coverage", "duplication", "coupling"]}
+    },
+    "returns": "Code metrics report with scores, trends, and areas needing attention"
+  },
+  {
+    "name": "manage_environment",
+    "description": "Manage virtual environments or containers for development",
+    "parameters": {
+      "action": {"type": "string", "description": "Action to perform", "required": true, "enum": ["create", "activate", "deactivate", "delete", "list", "install_requirements"]},
+      "env_name": {"type": "string", "description": "Environment name", "required": false},
+      "env_type": {"type": "string", "description": "Environment type", "required": false, "enum": ["venv", "conda", "docker", "nvm"]},
+      "python_version": {"type": "string", "description": "Python version for virtual environments", "required": false}
+    },
+    "returns": "Environment status and details"
+  },
+  {
+    "name": "explain_code",
+    "description": "Get a detailed explanation of what a code snippet or file does",
+    "parameters": {
+      "code": {"type": "string", "description": "Code snippet to explain", "required": false},
+      "file_path": {"type": "string", "description": "File path to explain", "required": false},
+      "detail_level": {"type": "string", "description": "Level of detail", "required": false, "enum": ["summary", "detailed", "line_by_line"]},
+      "audience": {"type": "string", "description": "Target audience level", "required": false, "enum": ["beginner", "intermediate", "expert"]}
+    },
+    "returns": "Code explanation with purpose, logic flow, key concepts, and potential issues"
+  },
+  {
+    "name": "compare_branches",
+    "description": "Compare two git branches showing differences",
+    "parameters": {
+      "base_branch": {"type": "string", "description": "Base branch for comparison", "required": true},
+      "compare_branch": {"type": "string", "description": "Branch to compare against base", "required": true},
+      "file_path": {"type": "string", "description": "Specific file to compare", "required": false}
+    },
+    "returns": "Branch comparison with commit differences, file changes, and conflict areas"
+  }
+]

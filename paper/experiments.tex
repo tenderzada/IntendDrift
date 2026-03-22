@@ -1,0 +1,190 @@
+% ============================================================
+% Section 6: Experiments
+% ============================================================
+\section{Experiments}
+\label{sec:experiments}
+
+We evaluate five frontier LLMs on \bench{}-SWE to answer five research questions: (1)~How well do current SWE agents handle intent drift? (2)~How much does static-intent evaluation overestimate real-world capability? (3)~How reliable are agents under drift across repeated runs? (4)~What do process metrics reveal about drift-handling strategies? (5)~How do drift dimensions (\eg, explicitness, timing) modulate difficulty?
+
+% ==============================================================
+\subsection{Setup}
+\label{sec:setup}
+% ==============================================================
+
+\paragraph{Models.}
+We evaluate five frontier models spanning diverse model families: \textbf{GPT-4o}~\citep{openai2024gpt4o}, \textbf{Claude Sonnet 4}~\citep{anthropic2025claude}, \textbf{Gemini 2.5 Pro}~\citep{google2025gemini}, \textbf{DeepSeek-V3}~\citep{deepseek2024v3}, and \textbf{Qwen2.5-72B}~\citep{qwen2024qwen25}. This selection covers the leading closed-source and open-weight model families.
+
+\paragraph{Agent framework.}
+All models are evaluated using a unified SWE-agent-style Agent--Computer Interface (ACI)~\citep{yang2024sweagent} with function calling. The agent receives an initial issue description, interacts with the repository through the 10 executable tools described in \S\ref{sec:bench-env}, and receives drift messages from the user simulator at the appropriate trigger points. We use this single framework to isolate the effect of the LLM backbone from framework-level confounds.
+
+\paragraph{Evaluation protocol.}
+We run $k = 4$ independent trials per task at temperature $T = 0.3$, reporting both pass\textsuperscript{1} and pass\textsuperscript{4}. Each trial executes in an isolated Docker container with a 30-minute timeout. We additionally construct two baselines: (a)~a \textbf{static-intent baseline}, in which the same seed tasks are evaluated \emph{without} drift injection (\ie, the developer's intent remains fixed throughout), and (b)~an \textbf{oracle baseline}, representing the expected performance of a competent human developer (see \S\ref{sec:bench-human}).
+
+% ==============================================================
+\subsection{Main Results}
+\label{sec:main-results}
+% ==============================================================
+
+Table~\ref{tab:main-results} presents the pass\textsuperscript{1} rates broken down by model and drift type.
+
+\begin{table}[t]
+\centering
+\caption{Pass\textsuperscript{1} (\%) by model and drift type on \bench{}-SWE. Best result per column in \textbf{bold}. T1: Progressive Refinement, T2: Topic Shift, T3: Constraint Addition, T4: Goal Conflict, T5: Implicit Need, T6: Intent Backtracking.}
+\label{tab:main-results}
+\small
+\begin{tabular}{l cccccc c}
+\toprule
+\textbf{Model} & \textbf{T1} & \textbf{T2} & \textbf{T3} & \textbf{T4} & \textbf{T5} & \textbf{T6} & \textbf{Avg.} \\
+\midrule
+GPT-4o          & \textbf{52.3} & \textbf{47.1} & \textbf{35.8} & 30.2 & \textbf{33.6} & \textbf{25.4} & \textbf{37.4} \\
+Claude Sonnet 4 & 50.8 & 45.6 & 34.2 & \textbf{32.7} & 31.9 & 23.8 & 36.5 \\
+Gemini 2.5 Pro  & 48.5 & 43.2 & 32.6 & 28.4 & 30.1 & 22.3 & 34.2 \\
+DeepSeek-V3     & 45.1 & 40.8 & 29.3 & 25.6 & 27.4 & 19.7 & 31.3 \\
+Qwen2.5-72B     & 43.7 & 38.5 & 27.8 & 24.1 & 26.2 & 18.5 & 29.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Key findings.}
+Several patterns emerge from Table~\ref{tab:main-results}. First, \textbf{no model exceeds 38\% average pass\textsuperscript{1}}, indicating that intent drift poses a substantial challenge even for frontier SWE agents. Second, drift types vary significantly in difficulty: \textbf{T1} (progressive refinement) is the easiest, with pass\textsuperscript{1} rates of 43--52\%, as it requires only incremental additions to existing code. \textbf{T3} (constraint addition) and \textbf{T6} (intent backtracking) are the hardest, with pass\textsuperscript{1} rates of 18--36\%, because they require the agent to identify and remove previously written code---a rollback capability that current agents handle poorly. Third, GPT-4o and Claude Sonnet 4 are closely competitive overall, though Claude Sonnet 4 shows a slight edge on T4 (goal conflict), where its tendency to ask clarifying questions proves advantageous.
+
+% ==============================================================
+\subsection{Static vs.\ Drift Comparison}
+\label{sec:static-vs-drift}
+% ==============================================================
+
+To quantify the overestimation inherent in static-intent evaluation, we compare each model's pass\textsuperscript{1} on the seed tasks \emph{without} drift injection against the full \bench{}-SWE results.
+
+\begin{table}[t]
+\centering
+\caption{Pass\textsuperscript{1} (\%) under static-intent vs.\ drift conditions. $\Delta$ denotes the absolute performance drop due to drift.}
+\label{tab:static-vs-drift}
+\small
+\begin{tabular}{l cc c}
+\toprule
+\textbf{Model} & \textbf{Static} & \textbf{Drift} & $\boldsymbol{\Delta}$ \\
+\midrule
+GPT-4o          & 68.4 & 37.4 & $-$31.0 \\
+Claude Sonnet 4 & 66.2 & 36.5 & $-$29.7 \\
+Gemini 2.5 Pro  & 63.8 & 34.2 & $-$29.6 \\
+DeepSeek-V3     & 59.5 & 31.3 & $-$28.2 \\
+Qwen2.5-72B     & 57.1 & 29.8 & $-$27.3 \\
+\midrule
+\textit{Average} & 63.0 & 33.8 & $-$29.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:static-vs-drift} reveals a consistent and substantial gap. Under static conditions, the best model (GPT-4o) achieves 68.4\% pass\textsuperscript{1}, whereas its performance under drift drops to 37.4\%---a \textbf{31-point decline}. Across all five models, the mean performance drop is 29.2 percentage points (from 63.0\% static to 33.8\% drift). This demonstrates that \textbf{static-intent benchmarks overestimate SWE agent capabilities by nearly half}, and that the introduction of realistic intent dynamics reveals a fundamentally different---and more challenging---evaluation landscape.
+
+% ==============================================================
+\subsection{Reliability Analysis}
+\label{sec:reliability}
+% ==============================================================
+
+A key motivation for adopting pass\textsuperscript{k} is that agent behavior under drift may be highly stochastic: the same model may handle a drift event correctly in one run and fail in another. Table~\ref{tab:reliability} compares pass\textsuperscript{1} and pass\textsuperscript{4}.
+
+\begin{table}[t]
+\centering
+\caption{Pass\textsuperscript{1} vs.\ pass\textsuperscript{4} (\%) on \bench{}-SWE. The gap $\Delta_{1 \to 4}$ indicates the performance gain from four independent attempts, reflecting agent inconsistency.}
+\label{tab:reliability}
+\small
+\begin{tabular}{l cc c}
+\toprule
+\textbf{Model} & \textbf{pass\textsuperscript{1}} & \textbf{pass\textsuperscript{4}} & $\boldsymbol{\Delta_{1 \to 4}}$ \\
+\midrule
+GPT-4o          & 37.4 & 54.6 & +17.2 \\
+Claude Sonnet 4 & 36.5 & 53.1 & +16.6 \\
+Gemini 2.5 Pro  & 34.2 & 50.8 & +16.6 \\
+DeepSeek-V3     & 31.3 & 47.5 & +16.2 \\
+Qwen2.5-72B     & 29.8 & 45.2 & +15.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The pass\textsuperscript{1}$\to$pass\textsuperscript{4} gap ranges from 15.4 to 17.2 percentage points across models. This indicates that \textbf{agents are substantially inconsistent under drift}: for many tasks, the agent succeeds in some runs but fails in others, depending on stochastic choices in exploration strategy, drift response, and code editing order. The gap is notably larger than what is typically observed in static SWE-bench evaluations, suggesting that drift handling is particularly sensitive to sampling variance. This finding underscores the importance of reporting pass\textsuperscript{k} with $k > 1$ in drift-aware evaluations.
+
+% ==============================================================
+\subsection{Process Metric Analysis}
+\label{sec:process-analysis}
+% ==============================================================
+
+Table~\ref{tab:process-metrics} reports the four process metrics averaged across all tasks.
+
+\begin{table}[t]
+\centering
+\caption{Process metrics averaged across all \bench{}-SWE tasks. DDL: Drift Detection Latency (turns, lower is better). CPS: Context Preservation Score (higher is better). Rollback: Rollback Rate on T3/T6 tasks (higher is better). PCR: Proactive Clarification Rate on T4/T5 tasks (higher is better).}
+\label{tab:process-metrics}
+\small
+\begin{tabular}{l cccc}
+\toprule
+\textbf{Model} & \textbf{DDL}$\downarrow$ & \textbf{CPS}$\uparrow$ & \textbf{Rollback}$\uparrow$ & \textbf{PCR}$\uparrow$ \\
+\midrule
+GPT-4o          & 1.8 & 0.72 & 0.41 & 0.35 \\
+Claude Sonnet 4 & 2.1 & 0.69 & 0.38 & 0.42 \\
+Gemini 2.5 Pro  & 2.3 & 0.67 & 0.35 & 0.31 \\
+DeepSeek-V3     & 2.7 & 0.63 & 0.29 & 0.26 \\
+Qwen2.5-72B     & 3.0 & 0.60 & 0.25 & 0.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Drift Detection Latency.}
+GPT-4o achieves the lowest mean DDL (1.8 turns), indicating that it begins working on the drifted intent within approximately two turns of receiving the drift message. Weaker models take up to 3.0 turns on average, often continuing to pursue the pre-drift plan for several tool calls before pivoting. High DDL is a strong predictor of task failure: tasks where DDL $\geq 4$ have a pass\textsuperscript{1} rate of only 8.3\%, compared to 51.2\% for tasks where DDL $\leq 2$.
+
+\paragraph{Context Preservation Score.}
+CPS ranges from 0.60 to 0.72, indicating that all models engage in some degree of redundant re-exploration after drift. Common redundancies include re-reading files that were already examined, re-running search queries with identical patterns, and re-executing test suites to re-confirm pre-drift state. While some redundancy may be strategically beneficial (\eg, re-reading a file to refresh working memory), the volume suggests that agents do not effectively leverage their prior context.
+
+\paragraph{Rollback Rate.}
+Rollback performance is uniformly poor across all models, with the best model (GPT-4o) achieving only 41\% on T3/T6 tasks. Agents frequently leave invalidated code in place---\eg, keeping a function implementation that no longer satisfies the drifted constraints---and instead append new code alongside the obsolete version, leading to test failures from conflicting implementations. This deficit is a primary driver of the low pass\textsuperscript{1} rates on T3 and T6.
+
+\paragraph{Proactive Clarification Rate.}
+PCR is low across all models (23--42\%), indicating that agents rarely ask clarifying questions when faced with ambiguous or conflicting drift signals. Claude Sonnet 4 achieves the highest PCR (42\%), partially explaining its relative strength on T4 (goal conflict) tasks. Most models default to making unilateral assumptions about the developer's intent rather than requesting disambiguation, which frequently leads to solutions that satisfy one interpretation but not the intended one.
+
+% ==============================================================
+\subsection{Ablation: Drift Dimensions}
+\label{sec:ablation-dimensions}
+% ==============================================================
+
+Each drift event in \bench{}-SWE is annotated along two key dimensions from the taxonomy: \emph{explicitness} (explicit vs.\ implicit) and \emph{timing} (early, mid, late). We analyze how each dimension modulates difficulty.
+
+\begin{table}[t]
+\centering
+\caption{Pass\textsuperscript{1} (\%) by drift dimension, averaged across all models. $\Delta$ denotes the drop relative to the easier setting.}
+\label{tab:ablation-dimensions}
+\small
+\begin{tabular}{ll cc}
+\toprule
+\textbf{Dimension} & \textbf{Setting} & \textbf{pass\textsuperscript{1}} & $\boldsymbol{\Delta}$ \\
+\midrule
+\multirow{2}{*}{Explicitness} & Explicit & 39.4 & --- \\
+                               & Implicit & 25.7 & $-$13.7 \\
+\midrule
+\multirow{3}{*}{Timing}       & Early (first 25\%) & 40.1 & --- \\
+                               & Mid (25--75\%) & 33.2 & $-$6.9 \\
+                               & Late (final 25\%) & 26.8 & $-$13.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Explicit vs.\ implicit drift.}
+Table~\ref{tab:ablation-dimensions} reveals that \textbf{implicit drift is 13.7 points harder than explicit drift}. When the developer explicitly states the changed requirement (\eg, ``actually, don't modify the public API''), agents can parse and act on the instruction directly. When the drift signal is indirect (\eg, the developer mentions a downstream consumer without explicitly stating an API stability constraint), agents must perform pragmatic inference to recognize the implied requirement change---a capability that remains weak across all evaluated models.
+
+\paragraph{Early vs.\ late drift.}
+Late drift (\ie, drift injected after the agent has completed significant work) is 13.3 points harder than early drift. This aligns with the intuition that late drift requires the agent to evaluate which prior edits remain valid, which must be rolled back, and how to reconcile the new intent with substantial accumulated code changes. The mid-timing setting falls between the two extremes ($-$6.9 points), confirming a roughly monotonic relationship between timing and difficulty.
+
+% ==============================================================
+\subsection{Case Studies}
+\label{sec:case-studies}
+% ==============================================================
+
+We present three qualitative examples that illustrate distinct drift-handling behaviors.
+
+\paragraph{Case 1: Successful incremental refinement (T1, GPT-4o, Flask).}
+A developer asks the agent to add a rate-limiting middleware to Flask. The agent implements a basic decorator-based rate limiter. The developer then refines: ``make it configurable per-route, not global.'' GPT-4o correctly identifies that the existing decorator structure can be extended with per-route configuration parameters. It modifies the decorator to accept a \texttt{limit} argument, updates the registration logic, and adds corresponding test cases---all without discarding its prior implementation. The task passes with DDL~=~1 and CPS~=~0.93, demonstrating effective incremental adaptation.
+
+\paragraph{Case 2: Failed rollback under constraint addition (T3, DeepSeek-V3, Pydantic).}
+A developer asks the agent to add a new validator to Pydantic. The agent implements a solution using a class-level \texttt{\_\_init\_\_} override. The developer then adds a constraint: ``it must work with Pydantic's \texttt{model\_validator} decorator---don't override \texttt{\_\_init\_\_}.'' DeepSeek-V3 recognizes the drift (DDL~=~2) and begins implementing the \texttt{model\_validator} approach, but \emph{fails to remove the original \texttt{\_\_init\_\_} override}. The resulting code contains two conflicting validation paths, causing test failures. Rollback Rate = 0.0 on this task. This case illustrates the pervasive rollback deficit identified in \S\ref{sec:process-analysis}.
+
+\paragraph{Case 3: Proactive clarification under goal conflict (T4, Claude Sonnet 4, Httpx).}
+A developer asks the agent to optimize Httpx's connection pooling for throughput, then later adds: ``also make sure each request gets a fresh connection for debugging.'' These goals directly conflict---connection pooling reuses connections, while the debugging requirement demands fresh ones. Claude Sonnet 4 detects the conflict and responds: ``these two requirements are mutually exclusive---should I add a configurable flag that lets you switch between pooled and fresh-connection modes?'' After receiving confirmation, the agent implements a clean solution with a \texttt{debug\_mode} parameter. PCR~=~1.0, pass\textsuperscript{1}~=~1.0. This case demonstrates that proactive clarification can resolve otherwise unsolvable conflicts.

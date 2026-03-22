@@ -1,0 +1,58 @@
+\section{Related Work}
+\label{sec:related}
+
+\bench{} connects four research threads: SWE agent evaluation, tool-agent-user interaction benchmarks, user intent in software engineering, and agent behavioral drift. We survey each and highlight the gap our work fills.
+
+% ==============================================================
+\subsection{SWE Agent Evaluation}
+\label{sec:rw-swe}
+% ==============================================================
+
+SWE-bench~\citep{jimenez2024swebench} established the dominant paradigm for evaluating autonomous software engineering agents: given a single GitHub issue, produce a single patch, and validate it against held-out tests. The dataset comprises 2{,}294 tasks drawn from real-world pull requests across 12 Python repositories. SWE-bench Verified curates a 500-task subset with human verification by 93 annotators, improving label quality and enabling more reliable comparisons. SWE-agent~\citep{yang2024sweagent} introduced the Agent--Computer Interface (ACI) design philosophy, demonstrating that purpose-built interfaces significantly boost agent performance (NeurIPS 2024). On the data side, SWE-smith~\citep{swesmith2025} scales training-data synthesis by systematically generating bug--fix pairs, earning a NeurIPS 2025 D\&B Spotlight. To address data contamination, SWE-bench Live~\citep{swebenchlive2025} provides a continuously updated stream of post-training-cutoff issues. SWE-EVO~\citep{sweevo2025} probes robustness to cross-version evolution: across 48 tasks GPT-4o's resolve rate drops from 65\% to 21\% when the target repository version changes. Most recently, SWE-CI~\citep{sweci2026} extends evaluation to CI-loop maintenance with an Architect--Programmer dual-agent setup over 100 tasks, introducing the EvoScore metric for measuring adaptation across build cycles.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Comparison of SWE evaluation benchmarks. \bench{} is the first to model multi-turn user interaction with evolving requirements during coding.}
+\label{tab:swe-compare}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Benchmark} & \textbf{Tasks} & \textbf{Multi-turn} & \textbf{User} & \textbf{Requirement} & \textbf{Process} \\
+ & & \textbf{Interaction} & \textbf{Simulation} & \textbf{Evolution} & \textbf{Metrics} \\
+\midrule
+SWE-bench           & 2{,}294 & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+SWE-bench Verified  & 500     & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+SWE-bench Live      & ongoing & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+SWE-smith           & 50k+    & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+SWE-EVO             & 48      & \ding{55} & \ding{55} & Partial  & \ding{55} \\
+SWE-CI              & 100     & Partial  & \ding{55} & Partial  & \ding{51} \\
+\midrule
+\textbf{\bench{}}   & XXX     & \ding{51} & \ding{51} & \ding{51} & \ding{51} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As Table~\ref{tab:swe-compare} shows, a critical assumption pervades the entire SWE-bench lineage: \emph{requirements are given once and never change}. Every benchmark supplies a fixed issue description and measures whether the agent produces a correct patch. None models the user who filed the issue---there is no interaction, no clarification, and no possibility that the requirement evolves mid-task. Real-world software development, by contrast, is fundamentally iterative: developers routinely refine specifications, shift priorities, and add constraints after coding has begun. \bench{} fills this gap by introducing multi-turn user interaction with structured requirement evolution into SWE agent evaluation.
+
+% ==============================================================
+\subsection{Tool-Agent-User Interaction Benchmarks}
+\label{sec:rw-interaction}
+% ==============================================================
+
+A separate line of work explicitly models user--agent interaction. $\tau$-bench~\citep{yao2024taubench} formulates the evaluation as a POMDP in which a simulated user converses with a tool-augmented agent; success is measured by comparing the final database state against a gold standard, with pass$^k$ aggregation over stochastic runs. The benchmark covers two retail domains. $\tau^2$-bench~\citep{tau2bench2025} extends this to a Dec-POMDP with dual-control (\ie, both user and agent take consequential actions) in the telecom domain. $\tau$-Knowledge~\citep{tauknowledge2026} adds unstructured knowledge grounding, requiring agents to consult 698 banking documents while interacting with users.
+
+These benchmarks provide the evaluation philosophy closest to ours---dynamic, multi-turn, state-based---but operate in customer-service domains, not software engineering. Our work transplants $\tau$-bench's interaction-centric evaluation paradigm into the SWE setting, where actions are code edits and tool invocations, state is a repository snapshot, and requirement evolution carries consequences far more difficult to reverse than updating a database record.
+
+% ==============================================================
+\subsection{User Intent in Software Engineering}
+\label{sec:rw-intent}
+% ==============================================================
+
+Requirements volatility has been studied extensively in the software engineering literature: changing requirements are a leading cause of project delays and cost overruns, and agile methodologies were designed precisely to accommodate iterative intent evolution through short feedback cycles. Modern IDE-integrated AI assistants---Cursor, GitHub Copilot Chat, Claude Code---are inherently multi-turn, allowing developers to refine, extend, and redirect coding tasks through conversation. Yet no existing benchmark systematically evaluates how well SWE agents handle requirement changes during a coding session. The gap is striking: the tools assume intent evolves, but the evaluations assume it does not. \bench{} addresses this mismatch directly.
+
+% ==============================================================
+\subsection{Agent Behavioral Drift}
+\label{sec:rw-agentdrift}
+% ==============================================================
+
+AgentDrift~\citep{agentdrift2026} studies behavioral drift on the \emph{agent side}, showing that tool-augmented agents exhibit semantic, coordination, and behavioral degradation across extended interactions. Our work is complementary: whereas AgentDrift examines how agents deviate from fixed goals, \drift{} examines how \emph{users' own requirements} evolve naturally and measures agents' ability to track and adapt to those changes. Together, the two perspectives---user-side intent drift and agent-side behavioral drift---offer a more complete picture of real-world SWE agent reliability.

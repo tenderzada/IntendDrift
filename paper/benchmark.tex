@@ -1,0 +1,172 @@
+% ============================================================
+% Section 4: IntentDrift-SWE Benchmark
+% ============================================================
+
+\section{\bench{}-SWE Benchmark}
+\label{sec:benchmark}
+
+We introduce \bench{}-SWE, a multi-turn software engineering evaluation suite that stress-tests coding agents under dynamic intent evolution. Unlike prior SWE benchmarks that present a fixed issue description and evaluate against a single gold patch, \bench{}-SWE embeds realistic intent drift events into interactive coding sessions over real repositories with executable test suites. This section describes the design principles (\S\ref{sec:bench-principles}), environment design (\S\ref{sec:bench-env}), task construction pipeline (\S\ref{sec:bench-pipeline}), user simulator (\S\ref{sec:bench-simulator}), dataset statistics (\S\ref{sec:bench-stats}), and a human baseline (\S\ref{sec:bench-human}).
+
+% ==============================================================
+\subsection{Design Principles}
+\label{sec:bench-principles}
+% ==============================================================
+
+\bench{}-SWE is guided by four principles, each grounded in the demands of interactive software engineering:
+
+\paragraph{Realism.}
+Drift scenarios are drawn from authentic developer workflows with AI coding assistants. Rather than crafting adversarial edge cases, we study how developers naturally refine requirements, shift focus between subsystems, append constraints after seeing partial implementations, express contradictory goals, and backtrack to earlier approaches. Each drift event reflects patterns observed in real IDE-integrated agent sessions~\citep{tuna2025, yang2024sweagent}.
+
+\paragraph{Controllability.}
+Each task is annotated with a structured \emph{drift blueprint} that specifies the drift type, trigger condition (defined over the agent's code state rather than a fixed turn number), the drift message content, and the updated expected end-state. This design enables researchers to evaluate agents along specific drift dimensions while ensuring that every drift event is intentional and traceable.
+
+\paragraph{Coverage.}
+The benchmark spans six drift types (T1--T6) across 6 repositories of varying complexity, with each drift type represented by 15--25 tasks. Compound drift scenarios (20--30 tasks) exercise interleaved patterns. Difficulty is controlled via drift timing, explicitness, and the scope of required code changes.
+
+\paragraph{Reproducibility.}
+Each task is pinned to a specific repository commit snapshot and executed inside a Docker container with a deterministic test suite. Evaluation is fully automated via \emph{pass\textsuperscript{k}}~\citep{yao2024taubench}: a task passes if and only if all drift-aware test cases pass, no regressions are introduced, and code constraints are satisfied. No LLM-as-Judge is required for the core metric.
+
+% ==============================================================
+\subsection{Environment Design}
+\label{sec:bench-env}
+% ==============================================================
+
+\paragraph{Repository selection.}
+We select 6 popular, well-maintained Python repositories that span diverse software engineering paradigms: \textbf{Flask}~(web framework), \textbf{Requests}~(HTTP client), \textbf{FastAPI}~(async web framework), \textbf{Click}~(CLI toolkit), \textbf{Httpx}~(async HTTP client), and \textbf{Pydantic}~(data validation). Selection criteria include: (i)~comprehensive existing test suites enabling reliable pass/fail evaluation, (ii)~active maintenance with well-documented codebases, (iii)~sufficient complexity to support multi-step coding tasks, and (iv)~diverse architectural patterns (\eg, synchronous vs.\ asynchronous, library vs.\ framework).
+
+\paragraph{Snapshot and isolation.}
+Each repository is frozen at a specific commit hash, ensuring identical starting conditions across all evaluation runs. Tasks execute inside Docker containers provisioned with the repository's full dependency stack, ensuring that \texttt{run\_tests} produces deterministic results. Container state is reset between independent runs to prevent cross-contamination.
+
+\paragraph{Agent--computer interface.}
+Agents interact with the repository through approximately 10 executable tools aligned with the SWE-agent Agent--Computer Interface (ACI)~\citep{yang2024sweagent}:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item \texttt{read\_file(path, start, end)} --- read file contents with optional line range
+    \item \texttt{edit\_file(path, old, new)} --- apply a targeted edit by replacing matched text
+    \item \texttt{create\_file(path, content)} --- create a new file
+    \item \texttt{search\_code(query, path)} --- search for patterns across the codebase
+    \item \texttt{search\_dir(query, dir)} --- search within a specific directory
+    \item \texttt{find\_file(name, dir)} --- locate files by name
+    \item \texttt{run\_tests(test\_path)} --- execute test suite and return results
+    \item \texttt{bash(command)} --- execute arbitrary shell commands
+    \item \texttt{git\_diff()} --- show current working tree changes
+    \item \texttt{submit()} --- finalize the agent's solution for evaluation
+\end{itemize}
+
+\noindent Crucially, all tools operate on the \emph{real} repository---there is no simulation layer. File edits modify actual source code, test execution produces real pass/fail outcomes, and \texttt{git\_diff} reflects the true state of the working tree. This grounds evaluation in concrete, verifiable outcomes rather than simulated approximations.
+
+% ==============================================================
+\subsection{Task Construction Pipeline}
+\label{sec:bench-pipeline}
+% ==============================================================
+
+We construct \bench{}-SWE via a four-stage pipeline that decouples drift design from task implementation, yielding controllable yet realistic scenarios. The pipeline is summarized in Algorithm~\ref{alg:pipeline}.
+
+\begin{algorithm}[t]
+\caption{Task Construction Pipeline for \bench{}-SWE}
+\label{alg:pipeline}
+\begin{algorithmic}[1]
+\REQUIRE Repositories $\mathcal{R}$, drift taxonomy $\mathcal{T} = \{T_1, \ldots, T_6\}$
+\ENSURE Verified task set $\mathcal{V}$
+\STATE \textbf{Stage 1: Seed Task Design}
+\FOR{each repository $r \in \mathcal{R}$}
+    \STATE Human experts identify 15--25 suitable feature/bug scenarios in $r$
+    \STATE Each seed $s$ defines: target module, initial issue description, expected code changes
+\ENDFOR
+\STATE \textbf{Stage 2: Drift Blueprint Creation}
+\FOR{each seed task $s$ and drift type $t \in \mathcal{T}$}
+    \STATE Design drift event: trigger condition $\phi(s_{\text{code}})$ based on agent's code state
+    \STATE Specify drift message $m_t$ and updated expected test end-state $e_t'$
+    \STATE Blueprint $b \leftarrow (s, t, \phi, m_t, e_t')$
+\ENDFOR
+\STATE \textbf{Stage 3: Test Harness Construction}
+\FOR{each blueprint $b$}
+    \STATE Write test cases $\mathcal{T}_{\text{orig}}$ verifying the original intent
+    \STATE Write test cases $\mathcal{T}_{\text{drift}}$ verifying the drifted intent
+    \STATE Validate: $\mathcal{T}_{\text{orig}} \cup \mathcal{T}_{\text{drift}}$ must be satisfiable under a correct combined solution
+\ENDFOR
+\STATE \textbf{Stage 4: Dual Human Review}
+\FOR{each task $(b, \mathcal{T}_{\text{orig}}, \mathcal{T}_{\text{drift}})$}
+    \STATE Reviewer 1 verifies: task solvability, drift naturalness, test correctness
+    \STATE Reviewer 2 independently verifies the same criteria
+    \STATE Retain if both reviewers approve; adjudicate disagreements with senior reviewer
+\ENDFOR
+\RETURN Verified task set $\mathcal{V}$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Stage 1: Seed task design.}
+Human experts with software engineering experience examine each repository to identify suitable feature implementation and bug-fix scenarios. A seed task specifies: the target module or subsystem, a natural-language issue description that a developer might provide to an AI coding assistant, and the expected scope of code changes. We select scenarios that require multi-step reasoning (\eg, understanding call chains across files, modifying both implementation and tests) to ensure sufficient interaction depth for drift injection.
+
+\paragraph{Stage 2: Drift blueprint creation.}
+For each seed task, we design one or more drift events drawn from the taxonomy (T1--T6). The key innovation is that drift triggers are defined as \emph{code state conditions} $\phi(s_{\text{code}})$ rather than fixed turn numbers. For example, a T3 (constraint addition) drift might trigger ``when the agent has edited the target function but has not yet modified the corresponding test file.'' This state-based triggering ensures that drift occurs at a semantically meaningful point regardless of the agent's exploration strategy. Each blueprint records the drift message (\ie, the developer's updated instruction), the trigger condition, and the updated expected end-state against which the final solution will be evaluated.
+
+\paragraph{Stage 3: Test harness construction.}
+For each task, we construct test cases that verify \emph{both} the original intent and the drifted intent. The original-intent tests ensure that work completed before the drift is preserved where appropriate; the drift-intent tests verify that the agent correctly incorporated the changed requirements. Test harnesses are validated to confirm that a correct combined solution---one that satisfies both original and drifted intent---exists and passes all tests. This dual-verification design prevents tasks that are unsolvable by construction.
+
+\paragraph{Stage 4: Dual human review.}
+Two independent reviewers verify each task along three axes: (i)~\emph{solvability}---a competent developer with the same tools could complete the task within the 30-minute time budget; (ii)~\emph{drift naturalness}---the drift event is plausible in a real developer--agent interaction, not contrived or adversarial; (iii)~\emph{test correctness}---the test harness correctly distinguishes valid from invalid solutions. Tasks are retained only if both reviewers approve. Disagreements are adjudicated by a senior reviewer.
+
+% ==============================================================
+\subsection{User Simulator}
+\label{sec:bench-simulator}
+% ==============================================================
+
+The user simulator governs the developer side of the interaction, delivering drift messages at the appropriate trigger points and responding to agent queries. Following the environment-coupled design of $\tau$-Knowledge~\citep{tauknowledge2026}, we minimize stochastic LLM usage to ensure reproducible evaluation.
+
+\paragraph{Drift message delivery.}
+Drift messages are \emph{deterministic}: they are drawn verbatim from the blueprint and injected when the trigger condition $\phi(s_{\text{code}})$ is satisfied. The simulator monitors the agent's code state after each tool call (\eg, by inspecting \texttt{git\_diff} output and tracking which files have been edited) and fires the drift message at the first turn where the condition holds. If the condition is never satisfied within the time budget, the drift is injected at a fallback turn (80\% of the timeout) to ensure the task remains evaluable.
+
+\paragraph{Pre- and post-drift responses.}
+Before and after the drift event, the simulator responds to agent questions using \emph{rule-governed templates}. Common interaction patterns---acknowledgments (``yes, that looks right''), confirmations (``go ahead with that approach''), and simple clarifications (``the function is in \texttt{auth/handler.py}'')---are handled by deterministic rules. Only complex follow-up questions that require contextual reasoning (\eg, ``should I also update the corresponding CLI command?'') are routed to an LLM for response generation.
+
+\paragraph{Reliability.}
+By restricting LLM usage to rare edge cases, we target the 2\% critical error rate reported by $\tau$-Knowledge~\citep{tauknowledge2026} for their user simulator. Deterministic triggering and rule-based responses ensure that evaluation variance arises from the \emph{agent's} behavior, not the simulator's.
+
+% ==============================================================
+\subsection{Dataset Statistics}
+\label{sec:bench-stats}
+% ==============================================================
+
+\begin{table}[t]
+\centering
+\small
+\caption{Summary statistics of \bench{}-SWE.}
+\label{tab:bench-stats}
+\begin{tabular}{lr}
+\toprule
+\textbf{Statistic} & \textbf{Value} \\
+\midrule
+Repositories & 6 \\
+Total tasks & 120 \\
+Avg.\ agent turns per task & 15--30 \\
+Test cases per task & 3--8 \\
+Executable tools & 10 \\
+\midrule
+\multicolumn{2}{l}{\textit{Drift type distribution}} \\
+\quad T1: Progressive Refinement & 20 \\
+\quad T2: Topic Shift & 18 \\
+\quad T3: Constraint Addition & 22 \\
+\quad T4: Goal Conflict & 15 \\
+\quad T5: Implicit Need Emergence & 17 \\
+\quad T6: Intent Backtracking & 20 \\
+\midrule
+Compound drift tasks (2+ drift events) & 25 \\
+\midrule
+\multicolumn{2}{l}{\textit{Drift dimension coverage}} \\
+\quad Explicit / Implicit & 72 / 48 \\
+\quad Early / Mid / Late timing & 35 / 50 / 35 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:bench-stats} summarizes the key statistics. \bench{}-SWE comprises 120 multi-turn SWE tasks spanning 6 repositories, with each drift type represented by 15--22 tasks. An additional 25 tasks involve compound drift (\ie, two or more drift events within a single session). Tasks average 15--30 agent turns and 3--8 test cases each, exercising approximately 10 executable tools. The drift dimension coverage ensures balanced representation across explicit vs.\ implicit triggers and early/mid/late timing.
+
+Compared to SWE-bench~\citep{jimenez2024swebench}, which evaluates single-turn, static-intent issue resolution, \bench{}-SWE is the first SWE benchmark to systematically model interactive intent dynamics with state-based drift triggers, dual-intent test harnesses, and deterministic process-level metrics.
+
+% ==============================================================
+\subsection{Human Baseline}
+\label{sec:bench-human}
+% ==============================================================
+
+To calibrate task difficulty, we plan a human baseline study in which experienced software developers serve as ``human agents,'' using the same tool interface available to LLM agents. Each participant will complete a stratified sample of tasks under the same 30-minute time budget. We will report pass\textsuperscript{1} rates and process metrics (DDL, CPS) to establish an informative upper bound against which model performance can be compared. Preliminary piloting on 10 tasks with 3 developers suggests that human pass\textsuperscript{1} rates exceed XX\%, confirming that the tasks are solvable but non-trivial. Full results will be reported in the final version.

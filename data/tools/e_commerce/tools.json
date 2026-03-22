@@ -1,0 +1,307 @@
+[
+  {
+    "name": "search_products",
+    "description": "Search for products across the marketplace by keyword, category, or filters",
+    "parameters": {
+      "query": {"type": "string", "description": "Search query or keywords", "required": true},
+      "category": {"type": "string", "description": "Product category to filter by", "required": false, "enum": ["electronics", "clothing", "home_garden", "books", "sports", "toys", "beauty", "automotive", "grocery", "office"]},
+      "min_price": {"type": "number", "description": "Minimum price in USD", "required": false},
+      "max_price": {"type": "number", "description": "Maximum price in USD", "required": false},
+      "min_rating": {"type": "number", "description": "Minimum product rating (1-5)", "required": false},
+      "sort_by": {"type": "string", "description": "Sort order for results", "required": false, "enum": ["relevance", "price_low", "price_high", "rating", "newest", "best_selling"]},
+      "prime_only": {"type": "boolean", "description": "Only show items with free fast shipping", "required": false},
+      "brand": {"type": "string", "description": "Filter by brand name", "required": false}
+    },
+    "returns": "List of products with name, price, rating, review count, availability, and thumbnail"
+  },
+  {
+    "name": "get_product_details",
+    "description": "Get detailed information about a specific product",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true}
+    },
+    "returns": "Full product details including description, specifications, images, variants, seller info, and shipping options"
+  },
+  {
+    "name": "get_product_reviews",
+    "description": "Get customer reviews for a specific product",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "sort_by": {"type": "string", "description": "Sort order for reviews", "required": false, "enum": ["recent", "helpful", "highest", "lowest", "verified_only"]},
+      "rating_filter": {"type": "integer", "description": "Filter by specific star rating (1-5)", "required": false},
+      "limit": {"type": "integer", "description": "Maximum number of reviews to return", "required": false}
+    },
+    "returns": "List of reviews with rating, text, reviewer, date, verified purchase status, and helpfulness"
+  },
+  {
+    "name": "add_to_cart",
+    "description": "Add a product to the shopping cart",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "quantity": {"type": "integer", "description": "Quantity to add", "required": true},
+      "variant_id": {"type": "string", "description": "Specific variant (size, color, etc.)", "required": false}
+    },
+    "returns": "Updated cart contents with item count and subtotal"
+  },
+  {
+    "name": "remove_from_cart",
+    "description": "Remove a product from the shopping cart",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product to remove", "required": true},
+      "variant_id": {"type": "string", "description": "Specific variant to remove", "required": false}
+    },
+    "returns": "Updated cart contents with item count and subtotal"
+  },
+  {
+    "name": "get_cart",
+    "description": "Retrieve the current contents of the shopping cart",
+    "parameters": {
+      "include_recommendations": {"type": "boolean", "description": "Include product recommendations based on cart", "required": false}
+    },
+    "returns": "Cart contents with items, quantities, prices, subtotal, tax estimate, and shipping estimate"
+  },
+  {
+    "name": "update_cart_quantity",
+    "description": "Update the quantity of an item in the shopping cart",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "quantity": {"type": "integer", "description": "New quantity", "required": true},
+      "variant_id": {"type": "string", "description": "Specific variant", "required": false}
+    },
+    "returns": "Updated cart contents with new subtotal"
+  },
+  {
+    "name": "place_order",
+    "description": "Place an order for items in the shopping cart",
+    "parameters": {
+      "shipping_address_id": {"type": "string", "description": "ID of the shipping address to use", "required": true},
+      "payment_method_id": {"type": "string", "description": "ID of the payment method to use", "required": true},
+      "shipping_method": {"type": "string", "description": "Shipping speed", "required": true, "enum": ["standard", "express", "overnight", "two_day"]},
+      "gift_wrap": {"type": "boolean", "description": "Wrap items as gift", "required": false},
+      "gift_message": {"type": "string", "description": "Gift message to include", "required": false},
+      "promo_code": {"type": "string", "description": "Promotional code to apply", "required": false}
+    },
+    "returns": "Order confirmation with order_id, items, total, estimated delivery date"
+  },
+  {
+    "name": "track_order",
+    "description": "Track the shipping status of an order",
+    "parameters": {
+      "order_id": {"type": "string", "description": "Unique identifier of the order", "required": true}
+    },
+    "returns": "Tracking details with status, carrier, tracking number, location history, and estimated delivery"
+  },
+  {
+    "name": "cancel_order",
+    "description": "Cancel an order that has not yet shipped",
+    "parameters": {
+      "order_id": {"type": "string", "description": "Unique identifier of the order to cancel", "required": true},
+      "reason": {"type": "string", "description": "Reason for cancellation", "required": false, "enum": ["changed_mind", "found_cheaper", "ordered_wrong_item", "delivery_too_slow", "other"]}
+    },
+    "returns": "Cancellation confirmation with refund amount and timeline"
+  },
+  {
+    "name": "return_item",
+    "description": "Initiate a return for a delivered item",
+    "parameters": {
+      "order_id": {"type": "string", "description": "Order ID containing the item", "required": true},
+      "product_id": {"type": "string", "description": "Product ID to return", "required": true},
+      "reason": {"type": "string", "description": "Reason for return", "required": true, "enum": ["defective", "wrong_item", "not_as_described", "no_longer_needed", "too_small", "too_large", "other"]},
+      "return_method": {"type": "string", "description": "How to return the item", "required": false, "enum": ["mail", "drop_off", "pickup"]}
+    },
+    "returns": "Return authorization with return_id, shipping label, refund estimate, and instructions"
+  },
+  {
+    "name": "get_order_history",
+    "description": "Get the user's past orders",
+    "parameters": {
+      "status": {"type": "string", "description": "Filter by order status", "required": false, "enum": ["processing", "shipped", "delivered", "cancelled", "returned", "all"]},
+      "from_date": {"type": "string", "description": "Start date (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End date (YYYY-MM-DD)", "required": false},
+      "limit": {"type": "integer", "description": "Maximum number of orders to return", "required": false}
+    },
+    "returns": "List of orders with order_id, date, items, total, status, and tracking info"
+  },
+  {
+    "name": "compare_products",
+    "description": "Compare multiple products side by side on specifications and price",
+    "parameters": {
+      "product_ids": {"type": "array", "description": "List of product IDs to compare", "required": true},
+      "criteria": {"type": "array", "description": "Specific comparison criteria", "required": false, "enum": ["price", "rating", "specs", "warranty", "shipping", "seller_rating"]}
+    },
+    "returns": "Side-by-side comparison table of products across specified criteria"
+  },
+  {
+    "name": "add_to_wishlist",
+    "description": "Add a product to the user's wishlist",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "list_name": {"type": "string", "description": "Name of the wishlist", "required": false},
+      "priority": {"type": "string", "description": "Priority level", "required": false, "enum": ["high", "medium", "low"]}
+    },
+    "returns": "Confirmation that product was added to wishlist"
+  },
+  {
+    "name": "get_wishlist",
+    "description": "Retrieve the user's wishlist items",
+    "parameters": {
+      "list_name": {"type": "string", "description": "Name of the specific wishlist", "required": false},
+      "include_price_changes": {"type": "boolean", "description": "Show price changes since item was added", "required": false}
+    },
+    "returns": "List of wishlist items with current price, availability, and price change alerts"
+  },
+  {
+    "name": "apply_coupon",
+    "description": "Apply a coupon or promotional code to the shopping cart",
+    "parameters": {
+      "coupon_code": {"type": "string", "description": "Coupon or promo code to apply", "required": true}
+    },
+    "returns": "Discount applied, new subtotal, and any restrictions or limitations"
+  },
+  {
+    "name": "get_shipping_estimate",
+    "description": "Get shipping cost and delivery time estimates for a product or cart",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Product ID (for single item estimate)", "required": false},
+      "zip_code": {"type": "string", "description": "Destination ZIP code", "required": true},
+      "shipping_method": {"type": "string", "description": "Shipping method", "required": false, "enum": ["standard", "express", "overnight", "two_day"]}
+    },
+    "returns": "Shipping options with cost, estimated delivery date, and carrier for each method"
+  },
+  {
+    "name": "check_product_availability",
+    "description": "Check if a product is in stock and available for purchase",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "variant_id": {"type": "string", "description": "Specific variant to check", "required": false},
+      "zip_code": {"type": "string", "description": "ZIP code for local availability", "required": false}
+    },
+    "returns": "Stock status, quantity available, restock date if out of stock, and nearby store availability"
+  },
+  {
+    "name": "get_price_history",
+    "description": "Get historical price data for a product",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Unique identifier of the product", "required": true},
+      "period": {"type": "string", "description": "Time period for history", "required": false, "enum": ["30d", "90d", "6m", "1y"]}
+    },
+    "returns": "Price history with dates, lowest price, highest price, average, and current price relative to history"
+  },
+  {
+    "name": "set_price_drop_alert",
+    "description": "Set an alert to be notified when a product's price drops",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Product ID to monitor", "required": true},
+      "target_price": {"type": "number", "description": "Target price to trigger alert", "required": true},
+      "notification_method": {"type": "string", "description": "How to receive notification", "required": false, "enum": ["email", "sms", "push"]}
+    },
+    "returns": "Alert confirmation with current price and alert_id"
+  },
+  {
+    "name": "submit_product_review",
+    "description": "Submit a review for a purchased product",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Product ID to review", "required": true},
+      "order_id": {"type": "string", "description": "Order ID for verified purchase", "required": true},
+      "rating": {"type": "integer", "description": "Rating from 1 to 5", "required": true},
+      "title": {"type": "string", "description": "Review title", "required": true},
+      "review_text": {"type": "string", "description": "Detailed review text", "required": true},
+      "photos": {"type": "array", "description": "Photo URLs to include with review", "required": false}
+    },
+    "returns": "Review confirmation with review_id"
+  },
+  {
+    "name": "get_seller_info",
+    "description": "Get information about a marketplace seller",
+    "parameters": {
+      "seller_id": {"type": "string", "description": "Unique identifier of the seller", "required": true}
+    },
+    "returns": "Seller details including name, rating, response time, return policy, and product count"
+  },
+  {
+    "name": "contact_seller",
+    "description": "Send a message to a product seller",
+    "parameters": {
+      "seller_id": {"type": "string", "description": "Seller ID to contact", "required": true},
+      "product_id": {"type": "string", "description": "Related product ID", "required": false},
+      "order_id": {"type": "string", "description": "Related order ID", "required": false},
+      "subject": {"type": "string", "description": "Message subject", "required": true},
+      "message": {"type": "string", "description": "Message body", "required": true}
+    },
+    "returns": "Message sent confirmation with conversation_id and expected response time"
+  },
+  {
+    "name": "get_recommendations",
+    "description": "Get personalized product recommendations based on browsing and purchase history",
+    "parameters": {
+      "category": {"type": "string", "description": "Category to get recommendations for", "required": false},
+      "based_on": {"type": "string", "description": "Recommendation basis", "required": false, "enum": ["purchase_history", "browsing_history", "wishlist", "trending", "similar_users"]},
+      "limit": {"type": "integer", "description": "Number of recommendations to return", "required": false}
+    },
+    "returns": "List of recommended products with relevance score and reason for recommendation"
+  },
+  {
+    "name": "manage_shipping_address",
+    "description": "Add, update, or delete a shipping address",
+    "parameters": {
+      "action": {"type": "string", "description": "Action to perform", "required": true, "enum": ["add", "update", "delete", "set_default"]},
+      "address_id": {"type": "string", "description": "Address ID (required for update/delete)", "required": false},
+      "name": {"type": "string", "description": "Recipient name", "required": false},
+      "street": {"type": "string", "description": "Street address", "required": false},
+      "city": {"type": "string", "description": "City", "required": false},
+      "state": {"type": "string", "description": "State or province", "required": false},
+      "zip_code": {"type": "string", "description": "ZIP or postal code", "required": false},
+      "country": {"type": "string", "description": "Country", "required": false},
+      "phone": {"type": "string", "description": "Contact phone number", "required": false}
+    },
+    "returns": "Updated address details or confirmation of action"
+  },
+  {
+    "name": "subscribe_to_product",
+    "description": "Set up a recurring subscription for a consumable product",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Product ID to subscribe to", "required": true},
+      "quantity": {"type": "integer", "description": "Quantity per delivery", "required": true},
+      "frequency": {"type": "string", "description": "Delivery frequency", "required": true, "enum": ["weekly", "biweekly", "monthly", "bimonthly", "quarterly"]},
+      "payment_method_id": {"type": "string", "description": "Payment method for subscription", "required": true}
+    },
+    "returns": "Subscription confirmation with subscription_id, next delivery date, and discount applied"
+  },
+  {
+    "name": "get_deals_of_the_day",
+    "description": "Get current deals, flash sales, and limited-time offers",
+    "parameters": {
+      "category": {"type": "string", "description": "Category to filter deals", "required": false},
+      "min_discount_pct": {"type": "number", "description": "Minimum discount percentage", "required": false},
+      "limit": {"type": "integer", "description": "Maximum number of deals to return", "required": false}
+    },
+    "returns": "List of current deals with product, original price, sale price, discount percentage, and time remaining"
+  },
+  {
+    "name": "ask_product_question",
+    "description": "Ask a question about a product on its listing page",
+    "parameters": {
+      "product_id": {"type": "string", "description": "Product ID to ask about", "required": true},
+      "question": {"type": "string", "description": "Question text", "required": true}
+    },
+    "returns": "Question submission confirmation and any existing answers to similar questions"
+  },
+  {
+    "name": "calculate_total",
+    "description": "Calculate the total cost of the current cart including tax, shipping, and discounts",
+    "parameters": {
+      "zip_code": {"type": "string", "description": "Destination ZIP code for tax and shipping calculation", "required": true},
+      "shipping_method": {"type": "string", "description": "Shipping method", "required": false, "enum": ["standard", "express", "overnight", "two_day"]},
+      "coupon_code": {"type": "string", "description": "Coupon code to apply", "required": false}
+    },
+    "returns": "Detailed cost breakdown with subtotal, tax, shipping, discounts, and grand total"
+  },
+  {
+    "name": "get_return_status",
+    "description": "Check the status of a return request",
+    "parameters": {
+      "return_id": {"type": "string", "description": "Return request ID", "required": true}
+    },
+    "returns": "Return status, refund amount, refund method, and estimated refund date"
+  }
+]

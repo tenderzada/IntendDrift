@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>User Directory</title></head>
+<body>
+    <h1>User Directory</h1>
+    <ul>
+    {% for username, user in users.items() %}
+        <li><a href="/profile/{{ username }}">{{ user.name }}</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

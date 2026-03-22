@@ -1,0 +1,146 @@
+[
+  {
+    "id": "programming_01",
+    "task": "Find all usages of a deprecated API in the codebase",
+    "description": "The user wants to search their Python codebase for all usages of a deprecated database connection method that was replaced in the latest library version, and get a list of files and line numbers that need updating.",
+    "complexity": "simple",
+    "required_tools": ["code_search", "file_read"],
+    "expected_turns": 3
+  },
+  {
+    "id": "programming_02",
+    "task": "Debug a NullPointerException in a Java Spring Boot application",
+    "description": "The user is getting a NullPointerException at startup in their Spring Boot app and has a stack trace. They need help identifying the root cause, which appears to be a missing bean injection in a service class.",
+    "complexity": "moderate",
+    "required_tools": ["code_search", "file_read", "stack_trace_analyzer", "dependency_checker"],
+    "expected_turns": 6
+  },
+  {
+    "id": "programming_03",
+    "task": "Look up API documentation for a specific REST endpoint",
+    "description": "The user wants to find the documentation for the Stripe Payments API refund endpoint, understand the required parameters, authentication method, and see example request/response payloads.",
+    "complexity": "simple",
+    "required_tools": ["api_doc_search", "api_doc_retrieve"],
+    "expected_turns": 3
+  },
+  {
+    "id": "programming_04",
+    "task": "Deploy a Docker container to a staging environment",
+    "description": "The user wants to build a Docker image from their application, tag it, push it to a container registry, and deploy it to a Kubernetes staging cluster, verifying the deployment status.",
+    "complexity": "complex",
+    "required_tools": ["docker_build", "docker_push", "kubectl_apply", "deployment_status"],
+    "expected_turns": 7
+  },
+  {
+    "id": "programming_05",
+    "task": "Resolve conflicting dependency versions in a Node.js project",
+    "description": "The user's npm install is failing due to peer dependency conflicts between React 18 and an older UI component library. They need to identify the conflict and find compatible versions.",
+    "complexity": "moderate",
+    "required_tools": ["dependency_tree", "package_info", "version_resolver", "file_read"],
+    "expected_turns": 5
+  },
+  {
+    "id": "programming_06",
+    "task": "Review a pull request for security vulnerabilities",
+    "description": "The user wants to review a teammate's pull request that adds user authentication, checking for common security issues like SQL injection, XSS, insecure token storage, and missing input validation.",
+    "complexity": "complex",
+    "required_tools": ["pr_diff_retrieval", "code_analyzer", "security_scanner", "comment_post"],
+    "expected_turns": 7
+  },
+  {
+    "id": "programming_07",
+    "task": "Write and run unit tests for a utility function",
+    "description": "The user has written a Python function that parses CSV files with custom delimiters and wants to create comprehensive unit tests covering normal cases, edge cases, and error handling.",
+    "complexity": "moderate",
+    "required_tools": ["file_read", "file_write", "test_runner", "coverage_report"],
+    "expected_turns": 5
+  },
+  {
+    "id": "programming_08",
+    "task": "Profile a slow API endpoint and optimize it",
+    "description": "The user has an API endpoint that takes 8 seconds to respond and wants to profile it to find the bottleneck, which they suspect is either a slow database query or an N+1 query problem.",
+    "complexity": "complex",
+    "required_tools": ["profiler_run", "query_analyzer", "code_search", "file_read", "performance_metrics"],
+    "expected_turns": 7
+  },
+  {
+    "id": "programming_09",
+    "task": "Resolve a merge conflict in a feature branch",
+    "description": "The user's feature branch has merge conflicts with the main branch in 3 files and needs help understanding the conflicts, deciding which changes to keep, and completing the merge.",
+    "complexity": "moderate",
+    "required_tools": ["git_status", "git_diff", "file_read", "file_write", "git_merge"],
+    "expected_turns": 6
+  },
+  {
+    "id": "programming_10",
+    "task": "Write a complex SQL query to generate a monthly report",
+    "description": "The user needs a SQL query that joins 4 tables to generate a monthly sales report grouped by region and product category, including year-over-year growth percentages and running totals.",
+    "complexity": "moderate",
+    "required_tools": ["schema_lookup", "query_builder", "query_executor", "result_formatter"],
+    "expected_turns": 5
+  },
+  {
+    "id": "programming_11",
+    "task": "Set up a CI/CD pipeline for a new microservice",
+    "description": "The user wants to configure a GitHub Actions workflow that runs linting, tests, builds a Docker image, and deploys to staging on push to the develop branch and to production on push to main.",
+    "complexity": "complex",
+    "required_tools": ["file_read", "file_write", "workflow_validator", "pipeline_trigger"],
+    "expected_turns": 7
+  },
+  {
+    "id": "programming_12",
+    "task": "Migrate a database schema without downtime",
+    "description": "The user needs to add a new column to a heavily-used table in PostgreSQL production database, create the migration script, and apply it with zero downtime using a safe migration strategy.",
+    "complexity": "complex",
+    "required_tools": ["schema_lookup", "migration_generator", "migration_validator", "migration_apply"],
+    "expected_turns": 6
+  },
+  {
+    "id": "programming_13",
+    "task": "Refactor a monolithic function into smaller composable functions",
+    "description": "The user has a 200-line Python function that handles data validation, transformation, and storage, and wants to break it into smaller, testable functions following the single responsibility principle.",
+    "complexity": "moderate",
+    "required_tools": ["file_read", "code_analyzer", "file_write", "test_runner"],
+    "expected_turns": 6
+  },
+  {
+    "id": "programming_14",
+    "task": "Debug a memory leak in a long-running Node.js service",
+    "description": "The user's Node.js service gradually consumes more memory over 24 hours until it crashes. They need to capture heap snapshots, identify retained objects, and fix the leak.",
+    "complexity": "complex",
+    "required_tools": ["profiler_run", "heap_analyzer", "code_search", "file_read", "file_write"],
+    "expected_turns": 8
+  },
+  {
+    "id": "programming_15",
+    "task": "Set up environment variables and secrets for a project",
+    "description": "The user is onboarding to a new project and needs to set up local environment variables for API keys, database credentials, and feature flags based on an .env.example template.",
+    "complexity": "simple",
+    "required_tools": ["file_read", "file_write", "secret_manager"],
+    "expected_turns": 4
+  },
+  {
+    "id": "programming_16",
+    "task": "Implement rate limiting for a REST API",
+    "description": "The user wants to add rate limiting to their Express.js API, allowing 100 requests per minute per API key, with appropriate 429 responses and rate limit headers.",
+    "complexity": "moderate",
+    "required_tools": ["file_read", "package_info", "file_write", "test_runner"],
+    "expected_turns": 5
+  },
+  {
+    "id": "programming_17",
+    "task": "Investigate and fix a failing integration test in CI",
+    "description": "The user's CI pipeline is failing on an integration test that passes locally. They need to check CI logs, compare environments, and identify whether it is a timing issue, missing env var, or flaky test.",
+    "complexity": "moderate",
+    "required_tools": ["ci_log_retrieval", "file_read", "env_comparison", "test_runner"],
+    "expected_turns": 6
+  },
+  {
+    "id": "programming_18",
+    "task": "Generate API client code from an OpenAPI specification",
+    "description": "The user has an OpenAPI 3.0 spec for a partner API and wants to auto-generate a typed TypeScript client, review the generated code, and test it against the sandbox endpoint.",
+    "complexity": "moderate",
+    "required_tools": ["file_read", "code_generator", "file_write", "api_tester"],
+    "expected_turns": 5
+  }
+]

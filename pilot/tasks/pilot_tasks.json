@@ -1,0 +1,468 @@
+[
+  {
+    "task_id": "T1-001",
+    "drift_type": "T1_progressive_refinement",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "easy",
+    "initial_request": "There's a bug in our Flask app where some routes return 500 errors. Can you investigate and fix it?",
+    "context": "The bug is actually in a Jinja2 template rendering issue where a missing variable causes an UndefinedError. The app has routes in app.py and templates in templates/.",
+    "drift_events": [
+      {
+        "trigger": "agent has read at least 2 files",
+        "user_message": "I think the issue is specifically in the template rendering — users see 500 when visiting the /profile page.",
+        "intent_before": "Investigate and fix 500 errors across the app",
+        "intent_after": "Fix 500 error on the /profile page, likely template issue"
+      },
+      {
+        "trigger": "agent has identified the template file",
+        "user_message": "Right, it's the profile.html template. The variable 'user_bio' is sometimes None. Can you add a default value instead of crashing?",
+        "intent_before": "Fix template rendering issue on /profile",
+        "intent_after": "Handle None value for 'user_bio' in profile.html with a default"
+      }
+    ],
+    "tests_must_pass": ["test_profile_page_renders", "test_profile_page_no_bio", "test_profile_page_with_bio"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["default('')", "or ''"], "must_not_contain": []},
+    "setup_description": "Create a minimal Flask app with a /profile route and a profile.html template that uses {{ user_bio }}. Some test users have bio=None."
+  },
+  {
+    "task_id": "T1-002",
+    "drift_type": "T1_progressive_refinement",
+    "repo": "requests",
+    "repo_url": "https://github.com/psf/requests",
+    "difficulty": "medium",
+    "initial_request": "Add timeout handling to our HTTP client wrapper so requests don't hang forever.",
+    "context": "A wrapper module around the requests library needs timeout support.",
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing timeout",
+        "user_message": "Good start. Actually, can you make it so there are separate connect and read timeouts? Connect timeout should be 5s, read timeout 30s.",
+        "intent_before": "Add a single timeout parameter",
+        "intent_after": "Add separate connect timeout (5s) and read timeout (30s)"
+      },
+      {
+        "trigger": "agent has implemented separate timeouts",
+        "user_message": "Also, the timeouts should be configurable via environment variables HTTP_CONNECT_TIMEOUT and HTTP_READ_TIMEOUT, with those as defaults.",
+        "intent_before": "Hardcoded connect=5s, read=30s",
+        "intent_after": "Env-configurable timeouts with 5s/30s defaults"
+      }
+    ],
+    "tests_must_pass": ["test_default_timeouts", "test_custom_timeouts_via_env", "test_connect_timeout_separate", "test_read_timeout_separate"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["os.environ", "HTTP_CONNECT_TIMEOUT", "HTTP_READ_TIMEOUT"], "must_not_contain": []},
+    "setup_description": "Create a simple HTTP client wrapper module with basic get/post methods."
+  },
+  {
+    "task_id": "T1-003",
+    "drift_type": "T1_progressive_refinement",
+    "repo": "click",
+    "repo_url": "https://github.com/pallets/click",
+    "difficulty": "easy",
+    "initial_request": "Write a CLI tool that converts CSV files to JSON.",
+    "context": "Simple data conversion utility using Click.",
+    "drift_events": [
+      {
+        "trigger": "agent has written basic CSV→JSON conversion",
+        "user_message": "Nice. Can you add an option to specify which columns to include? Like --columns name,email.",
+        "intent_before": "Convert all columns from CSV to JSON",
+        "intent_after": "Convert selected columns from CSV to JSON via --columns flag"
+      }
+    ],
+    "tests_must_pass": ["test_full_conversion", "test_selected_columns", "test_invalid_column_name"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["@click.option", "--columns"], "must_not_contain": []},
+    "setup_description": "Empty CLI project with Click installed."
+  },
+  {
+    "task_id": "T2-001",
+    "drift_type": "T2_topic_shift",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "medium",
+    "initial_request": "Add a /health endpoint that returns the app's status and uptime.",
+    "context": "Standard health check endpoint for a Flask app.",
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing /health endpoint",
+        "user_message": "Hold on — before you finish that, can you quickly check if there's a SQL injection vulnerability in our /search endpoint? I just got an alert from our security scan. That's more urgent.",
+        "intent_before": "Implement /health endpoint",
+        "intent_after": "Audit and fix SQL injection in /search endpoint"
+      },
+      {
+        "trigger": "agent has addressed the SQL injection issue",
+        "user_message": "OK great, thanks for fixing that. Now let's go back to the health endpoint. Where were we?",
+        "intent_before": "Fix SQL injection in /search",
+        "intent_after": "Resume implementing /health endpoint"
+      }
+    ],
+    "tests_must_pass": ["test_health_endpoint_returns_200", "test_health_shows_uptime", "test_search_no_sql_injection", "test_search_parameterized_query"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["/health", "parameterized"], "must_not_contain": ["f\"SELECT", "format("]},
+    "setup_description": "Flask app with a /search endpoint that has a SQL injection vulnerability (string formatting in SQL query)."
+  },
+  {
+    "task_id": "T2-002",
+    "drift_type": "T2_topic_shift",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "medium",
+    "initial_request": "Add pagination support to the GET /items endpoint.",
+    "context": "FastAPI app with a /items CRUD endpoint.",
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing pagination",
+        "user_message": "Actually wait, I need you to check something else first — the POST /items endpoint doesn't validate the price field properly. Negative prices are getting through. Can you fix that real quick?",
+        "intent_before": "Add pagination to GET /items",
+        "intent_after": "Fix price validation on POST /items"
+      },
+      {
+        "trigger": "agent has fixed price validation",
+        "user_message": "Perfect. OK now back to the pagination — please continue.",
+        "intent_before": "Fix price validation",
+        "intent_after": "Resume pagination for GET /items"
+      }
+    ],
+    "tests_must_pass": ["test_pagination_default", "test_pagination_custom_page", "test_negative_price_rejected", "test_zero_price_rejected"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["page", "limit", "gt=0"], "must_not_contain": []},
+    "setup_description": "FastAPI app with basic /items CRUD. POST /items accepts any price value including negative."
+  },
+  {
+    "task_id": "T2-003",
+    "drift_type": "T2_topic_shift",
+    "repo": "click",
+    "repo_url": "https://github.com/pallets/click",
+    "difficulty": "easy",
+    "initial_request": "Add a --verbose flag to our CLI tool that shows detailed output.",
+    "context": "Existing Click CLI tool for file processing.",
+    "drift_events": [
+      {
+        "trigger": "agent has started adding --verbose",
+        "user_message": "Oh sorry, one thing first — can you update the README to document the existing --format option? I keep getting questions about it.",
+        "intent_before": "Add --verbose flag",
+        "intent_after": "Update README with --format documentation"
+      },
+      {
+        "trigger": "agent has updated README",
+        "user_message": "Thanks. OK, now let's do the --verbose flag.",
+        "intent_before": "Update README",
+        "intent_after": "Resume adding --verbose flag"
+      }
+    ],
+    "tests_must_pass": ["test_verbose_flag_shows_detail", "test_no_verbose_quiet_output"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["--verbose", "--format"], "must_not_contain": []},
+    "setup_description": "Click CLI tool with --format option. README exists but doesn't document --format."
+  },
+  {
+    "task_id": "T3-001",
+    "drift_type": "T3_constraint_addition",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "hard",
+    "initial_request": "Add rate limiting to our API. Each IP should be limited to 100 requests per minute.",
+    "context": "Flask API that needs rate limiting.",
+    "drift_events": [
+      {
+        "trigger": "agent has created/modified at least 1 source file with rate limit logic",
+        "user_message": "Oh wait, I forgot to mention — we run multiple workers behind a load balancer, so in-memory rate limiting won't work. It needs to use Redis as the backend store. We have Redis available at localhost:6379.",
+        "intent_before": "Add in-memory rate limiting (100 req/min per IP)",
+        "intent_after": "Add Redis-backed distributed rate limiting (100 req/min per IP)"
+      }
+    ],
+    "tests_must_pass": ["test_rate_limit_allows_under_limit", "test_rate_limit_blocks_over_limit", "test_rate_limit_uses_redis", "test_rate_limit_429_response"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["redis", "Redis"], "must_not_contain": ["in_memory_store = {}", "defaultdict"]},
+    "setup_description": "Flask API with several endpoints. Redis is available but not yet used."
+  },
+  {
+    "task_id": "T3-002",
+    "drift_type": "T3_constraint_addition",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "medium",
+    "initial_request": "Add a file upload endpoint that accepts images and saves them to disk.",
+    "context": "FastAPI app that needs image upload capability.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented basic file upload",
+        "user_message": "Looks good, but I just realized we need to validate that uploaded files are actually images (JPEG or PNG only) and are under 5MB. Also, please resize any image larger than 1920x1080 to fit within those dimensions.",
+        "intent_before": "Accept and save any uploaded file",
+        "intent_after": "Accept only JPEG/PNG ≤5MB, auto-resize to max 1920x1080"
+      }
+    ],
+    "tests_must_pass": ["test_upload_valid_jpeg", "test_upload_valid_png", "test_reject_non_image", "test_reject_oversized_file", "test_resize_large_image"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["Pillow", "PIL", "5 * 1024 * 1024", "1920", "1080"], "must_not_contain": []},
+    "setup_description": "FastAPI app with basic endpoints. Pillow is installed."
+  },
+  {
+    "task_id": "T3-003",
+    "drift_type": "T3_constraint_addition",
+    "repo": "requests",
+    "repo_url": "https://github.com/psf/requests",
+    "difficulty": "medium",
+    "initial_request": "Write a web scraper that fetches product prices from a given URL and saves them to a CSV file.",
+    "context": "Simple scraping utility.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented basic scraper",
+        "user_message": "Nice, but we need to respect robots.txt and add a 2-second delay between requests. Also, the user-agent should identify us as 'PriceBot/1.0'. We can't get blocked.",
+        "intent_before": "Basic scraper saving to CSV",
+        "intent_after": "Polite scraper: respects robots.txt, 2s delay, custom user-agent"
+      }
+    ],
+    "tests_must_pass": ["test_respects_robots_txt", "test_request_delay", "test_custom_user_agent", "test_csv_output"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["robots", "sleep", "PriceBot/1.0"], "must_not_contain": []},
+    "setup_description": "Empty project with requests and beautifulsoup4 installed."
+  },
+  {
+    "task_id": "T4-001",
+    "drift_type": "T4_goal_conflict",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "medium",
+    "initial_request": "Optimize the /search endpoint to be faster. It's currently too slow with large datasets.",
+    "context": "Flask app with a /search endpoint that does full-table scan.",
+    "drift_events": [
+      {
+        "trigger": "agent has started optimizing (reading code, planning changes)",
+        "user_message": "Important: don't change the database schema or add any new indexes. The DBA won't approve schema changes before the deadline. But the search still needs to be at least 10x faster.",
+        "intent_before": "Optimize /search for speed (any approach)",
+        "intent_after": "Make /search 10x faster WITHOUT any database schema changes"
+      }
+    ],
+    "tests_must_pass": ["test_search_returns_correct_results", "test_search_performance"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": [], "must_not_contain": ["CREATE INDEX", "ALTER TABLE", "ADD INDEX"]},
+    "setup_description": "Flask app with SQLite database and a slow /search endpoint doing SELECT * FROM items WHERE name LIKE '%query%'. Expect agent to recognize the conflict and propose alternatives (caching, application-level indexing, etc.)."
+  },
+  {
+    "task_id": "T4-002",
+    "drift_type": "T4_goal_conflict",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "hard",
+    "initial_request": "Make our API endpoint responses smaller to reduce bandwidth. Use compression and strip unnecessary fields.",
+    "context": "FastAPI app with verbose JSON responses.",
+    "drift_events": [
+      {
+        "trigger": "agent has started optimizing response sizes",
+        "user_message": "Actually, we also need to maintain backward compatibility — all existing fields must still be present in the response. Our mobile clients depend on every field. But responses still need to be at least 50% smaller.",
+        "intent_before": "Reduce response size by stripping fields + compression",
+        "intent_after": "Reduce response size by 50% while keeping ALL existing fields"
+      }
+    ],
+    "tests_must_pass": ["test_response_backward_compatible", "test_response_size_reduced", "test_all_fields_present"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["gzip", "GZipMiddleware"], "must_not_contain": []},
+    "setup_description": "FastAPI app with verbose JSON responses. Agent should recognize that 'strip fields' conflicts with 'keep all fields' and propose compression as the solution. Ideal: agent asks for clarification."
+  },
+  {
+    "task_id": "T4-003",
+    "drift_type": "T4_goal_conflict",
+    "repo": "click",
+    "repo_url": "https://github.com/pallets/click",
+    "difficulty": "easy",
+    "initial_request": "Make our CLI tool work without any external dependencies — pure standard library only.",
+    "context": "CLI tool currently using Click and rich for output.",
+    "drift_events": [
+      {
+        "trigger": "agent has started reading the codebase",
+        "user_message": "Oh but keep using Click for argument parsing — rewriting that would take too long. Just remove the other external deps.",
+        "intent_before": "Remove ALL external dependencies",
+        "intent_after": "Remove external deps EXCEPT Click"
+      }
+    ],
+    "tests_must_pass": ["test_cli_runs_without_rich", "test_cli_argument_parsing_works"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["import click"], "must_not_contain": ["import rich", "from rich"]},
+    "setup_description": "CLI tool using Click + rich. Agent should recognize the initial request conflicts with using Click, and adapt when user clarifies."
+  },
+  {
+    "task_id": "T5-001",
+    "drift_type": "T5_implicit_need",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "medium",
+    "initial_request": "Add a user registration endpoint POST /register that accepts username, email, and password.",
+    "context": "Flask app with existing login endpoint but no registration.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented basic registration",
+        "user_message": "Looks good! Ship it.",
+        "intent_before": "Implement basic POST /register",
+        "intent_after": "Implement POST /register with implicit requirements: password hashing, email validation, duplicate user check"
+      }
+    ],
+    "tests_must_pass": ["test_register_success", "test_register_duplicate_email", "test_register_invalid_email", "test_password_is_hashed", "test_register_returns_201"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["hash", "bcrypt"], "must_not_contain": ["password=request"]},
+    "setup_description": "Flask app with user model and login endpoint. Agent should proactively add password hashing, email validation, and duplicate checking even though user didn't explicitly ask."
+  },
+  {
+    "task_id": "T5-002",
+    "drift_type": "T5_implicit_need",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "medium",
+    "initial_request": "Add a DELETE /items/{id} endpoint to our API.",
+    "context": "FastAPI app with GET, POST, PUT for /items but no DELETE.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented basic DELETE",
+        "user_message": "Great, that works.",
+        "intent_before": "Add basic DELETE endpoint",
+        "intent_after": "Add DELETE endpoint with implicit needs: 404 handling, authorization check, cascade deletion of related records"
+      }
+    ],
+    "tests_must_pass": ["test_delete_existing_item", "test_delete_nonexistent_returns_404", "test_delete_cascades_relations"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["404", "HTTPException"], "must_not_contain": []},
+    "setup_description": "FastAPI app with items and related orders tables. Deleting an item should handle related orders."
+  },
+  {
+    "task_id": "T5-003",
+    "drift_type": "T5_implicit_need",
+    "repo": "click",
+    "repo_url": "https://github.com/pallets/click",
+    "difficulty": "easy",
+    "initial_request": "Add a 'deploy' command to our CLI tool that pushes code to the staging server.",
+    "context": "CLI tool for DevOps tasks.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented basic deploy command",
+        "user_message": "Looks good.",
+        "intent_before": "Add basic deploy command",
+        "intent_after": "Add deploy command with implicit needs: confirmation prompt, dry-run option, logging"
+      }
+    ],
+    "tests_must_pass": ["test_deploy_with_confirmation", "test_deploy_dry_run", "test_deploy_logs_actions"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["--dry-run", "confirm"], "must_not_contain": []},
+    "setup_description": "Click CLI tool with existing build and test commands. Agent should proactively add --dry-run and confirmation prompt for a destructive action like deploy."
+  },
+  {
+    "task_id": "T6-001",
+    "drift_type": "T6_intent_backtracking",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "hard",
+    "initial_request": "Implement caching for our /products endpoint using a decorator-based approach with an in-memory cache.",
+    "context": "Flask API with a slow /products endpoint.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented decorator-based caching with at least 20 lines of new code",
+        "user_message": "Actually, I just talked to the team lead and they said we should use Flask-Caching instead of rolling our own. Can you undo what you did and use Flask-Caching with a simple TTL of 300 seconds?",
+        "intent_before": "Custom decorator-based in-memory cache",
+        "intent_after": "Use Flask-Caching library with TTL=300s"
+      }
+    ],
+    "tests_must_pass": ["test_products_cached", "test_cache_ttl_300", "test_cache_invalidation"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["flask_caching", "Cache", "300"], "must_not_contain": ["def cache_decorator", "functools.wraps"]},
+    "setup_description": "Flask app with slow /products endpoint. Flask-Caching is available in requirements."
+  },
+  {
+    "task_id": "T6-002",
+    "drift_type": "T6_intent_backtracking",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "hard",
+    "initial_request": "Add JWT authentication to our API using PyJWT. Create login and protected endpoints.",
+    "context": "FastAPI app with no authentication.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented JWT auth with PyJWT (created auth module, login endpoint, token verification)",
+        "user_message": "Wait — my colleague just pointed out we should use FastAPI's built-in OAuth2 with python-jose instead of PyJWT, since it integrates better with FastAPI's dependency injection. Can you switch to that approach?",
+        "intent_before": "JWT auth using PyJWT with manual implementation",
+        "intent_after": "OAuth2 auth using python-jose integrated with FastAPI's security module"
+      }
+    ],
+    "tests_must_pass": ["test_login_returns_token", "test_protected_endpoint_requires_auth", "test_invalid_token_rejected", "test_oauth2_scheme_used"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["jose", "OAuth2PasswordBearer"], "must_not_contain": ["import jwt", "PyJWT"]},
+    "setup_description": "FastAPI app with user model but no auth. Both PyJWT and python-jose are in requirements."
+  },
+  {
+    "task_id": "T6-003",
+    "drift_type": "T6_intent_backtracking",
+    "repo": "requests",
+    "repo_url": "https://github.com/psf/requests",
+    "difficulty": "medium",
+    "initial_request": "Write a configuration system that reads from YAML config files.",
+    "context": "Application needs a config module.",
+    "drift_events": [
+      {
+        "trigger": "agent has implemented YAML config reader",
+        "user_message": "Hmm, actually let's use TOML instead of YAML. Python 3.11+ has tomllib built-in so we don't need any extra dependencies. Please switch to TOML.",
+        "intent_before": "YAML-based configuration with PyYAML",
+        "intent_after": "TOML-based configuration using stdlib tomllib"
+      }
+    ],
+    "tests_must_pass": ["test_load_toml_config", "test_config_default_values", "test_config_missing_file_error"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["tomllib", ".toml"], "must_not_contain": ["yaml", "PyYAML"]},
+    "setup_description": "Empty config module. Both PyYAML and tomllib available."
+  },
+  {
+    "task_id": "compound-001",
+    "drift_type": "T1+T3_compound",
+    "repo": "flask",
+    "repo_url": "https://github.com/pallets/flask",
+    "difficulty": "hard",
+    "initial_request": "Add logging to our Flask app. I want all requests to be logged.",
+    "context": "Flask app with no logging.",
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing logging",
+        "user_message": "Can you specifically log the request method, path, response status code, and response time?",
+        "intent_before": "Add basic request logging",
+        "intent_after": "Log method, path, status code, and response time per request",
+        "drift_subtype": "T1_progressive_refinement"
+      },
+      {
+        "trigger": "agent has implemented request logging with timing",
+        "user_message": "Oh, I forgot — we need the logs to go to a file in JSON format, not stdout. Our log aggregator (ELK stack) only accepts JSON. And make sure sensitive headers like Authorization are redacted.",
+        "intent_before": "Log to stdout in text format",
+        "intent_after": "Log to file in JSON format with sensitive header redaction",
+        "drift_subtype": "T3_constraint_addition"
+      }
+    ],
+    "tests_must_pass": ["test_request_logged", "test_log_contains_method_path_status_time", "test_log_file_json_format", "test_sensitive_headers_redacted"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["json", "Authorization", "redact"], "must_not_contain": ["print("]},
+    "setup_description": "Flask app with several endpoints. No logging configured."
+  },
+  {
+    "task_id": "compound-002",
+    "drift_type": "T2+T6_compound",
+    "repo": "fastapi",
+    "repo_url": "https://github.com/tiangolo/fastapi",
+    "difficulty": "hard",
+    "initial_request": "Add WebSocket support to our FastAPI app for real-time chat messages.",
+    "context": "FastAPI app that needs real-time features.",
+    "drift_events": [
+      {
+        "trigger": "agent has started implementing WebSocket endpoint",
+        "user_message": "Pause on that — there's a critical bug in the /users endpoint. It returns all users including deleted ones. Can you fix that first? Filter out users where is_active=False.",
+        "intent_before": "Implement WebSocket chat",
+        "intent_after": "Fix /users endpoint to exclude inactive users",
+        "drift_subtype": "T2_topic_shift"
+      },
+      {
+        "trigger": "agent has fixed the /users bug",
+        "user_message": "Great, that's fixed. Now about the WebSocket — actually, let's use Server-Sent Events (SSE) instead. It's simpler and we don't need bidirectional communication. Can you do SSE instead?",
+        "intent_before": "Resume WebSocket implementation",
+        "intent_after": "Implement SSE instead of WebSocket for real-time messages",
+        "drift_subtype": "T6_intent_backtracking"
+      }
+    ],
+    "tests_must_pass": ["test_users_excludes_inactive", "test_sse_endpoint_streams", "test_sse_message_format"],
+    "tests_must_not_regress": ["test_*"],
+    "code_constraints": {"must_contain": ["EventSourceResponse", "is_active"], "must_not_contain": ["WebSocket("]},
+    "setup_description": "FastAPI app with /users endpoint that doesn't filter by is_active. sse-starlette package available."
+  }
+]

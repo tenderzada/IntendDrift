@@ -1,0 +1,71 @@
+% ============================================================
+% Section 7: Discussion + Section 8: Conclusion
+% ============================================================
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Intent Drift Is Hard for SWE Agents}
+\label{sec:disc-hard-swe}
+
+Our results confirm that intent drift poses a fundamentally harder challenge in software engineering than in the service-oriented domains studied by prior interaction benchmarks~\citep{yao2024taubench, tauknowledge2026}. We identify four structural reasons specific to SWE contexts.
+
+\paragraph{Code changes are concrete, persistent artifacts.}
+Unlike conversational agents whose outputs are ephemeral text, SWE agents produce \emph{persistent side effects}: new files are created, functions are modified, imports are rewritten, and tests are updated. Once a file has been edited, the repository state has materially changed. A drift event that arrives after such edits cannot be addressed by simply revising the agent's next utterance---it requires reasoning about the current state of the codebase and determining which modifications remain valid under the revised intent. This stands in contrast to, \eg, a travel-booking agent that can cancel a reservation with a single API call: undoing a refactored class hierarchy is categorically more complex.
+
+\paragraph{Rollback requires understanding code dependencies.}
+When a developer adds a constraint after partial implementation (T3) or backtracks to a prior approach (T6), the agent cannot simply ``undo the last action.'' Code changes propagate through dependency graphs: renaming a function affects every call site, deleting a utility module breaks downstream imports, and modifying a data structure can invalidate serialization logic throughout the codebase. Effective rollback demands that the agent reason about these dependencies, identifying which changes are safe to revert and which have created new invariants that other code now relies upon. Our finding that T3 and T6 are the most challenging drift types---with IDS scores 15--22 points below T1---directly reflects this: these are precisely the patterns where drift intersects with code-level dependency reasoning.
+
+\paragraph{Technical debt from premature implementation.}
+SWE agents that commit to large-scale changes before confirming requirements risk creating \emph{technical debt} that compounds with each subsequent drift event. An agent that eagerly refactors an entire module based on an initial request, only to discover that the developer intended a minimal fix, has created a divergence between the repository state and the developer's intent that is costly to reconcile. This connects to the well-established software engineering concept of premature optimization~\citep{replanningsurvey}: in the presence of evolving requirements, incremental implementation is strictly safer than wholesale restructuring, yet our experiments show that current agents rarely exhibit such restraint.
+
+\paragraph{Refactoring cost scales with change scope.}
+The cost of adapting to drift is not constant---it scales with the scope of changes already made. A drift event at turn~2, before the agent has written any code, is trivially handled. The same drift event at turn~8, after the agent has edited five files and added 200 lines of code, may require extensive refactoring. Our timing-dimension ablation (Table~\ref{tab:ablation-dimensions}) confirms this: late-stage drift causes a 0.12-point IDS drop compared to the all-easy baseline, a penalty attributable to the accumulated state that must be reconciled with revised requirements.
+
+\subsection{Implications for SWE Agent Design}
+\label{sec:disc-design-swe}
+
+Our findings suggest four concrete architectural principles for building drift-resilient SWE agents.
+
+\paragraph{Checkpoint-based execution.}
+The difficulty of T3 and T6 motivates a \emph{checkpoint-based execution} paradigm in which agents save git snapshots before major changes---file creations, multi-file refactors, or API modifications. When drift is detected post-execution, the agent can revert to the most recent checkpoint rather than attempting manual rollback across interdependent files. Tools like Claude Code already expose git integration; our results suggest that \emph{systematic, agent-initiated} checkpointing before irreversible actions would yield significant gains on backtracking and constraint-addition scenarios.
+
+\paragraph{Explicit requirement tracking.}
+Current SWE agent frameworks maintain user requirements implicitly through conversation history. Our results suggest that agents would benefit from an \emph{explicit requirement tracking module} that maintains a structured representation of the developer's current goals, constraints, and priorities---analogous to a living requirements document. Such a module could be updated at each turn, enabling the agent to detect when a new user message conflicts with or extends existing requirements, and to flag the discrepancy before acting.
+
+\paragraph{Incremental implementation.}
+Agents that commit to large-scale changes before confirming requirements are disproportionately penalized by drift. An incremental implementation strategy---making small, testable changes and validating them with the developer before proceeding---reduces the blast radius of any single drift event. This mirrors the agile principle of delivering working software in small increments and is directly supported by our compound-drift analysis (Table~\ref{tab:compound-drift}), which shows that accumulated changes amplify drift-induced degradation.
+
+\paragraph{Proactive clarification before irreversible actions.}
+Our PCR analysis reveals that most agents adopt a reactive posture, proceeding with implementation without confirming ambiguous requirements. SWE agents should be designed to \emph{proactively clarify} before taking irreversible actions---deleting files, modifying public APIs, or restructuring shared modules. The cost of a clarification question (one additional turn) is negligible compared to the cost of rolling back an incorrect refactoring. Designing effective clarification policies that balance informativeness with developer burden remains an open challenge, but our results strongly motivate the investment.
+
+\subsection{Limitations}
+\label{sec:disc-limitations}
+
+We acknowledge several limitations of this work.
+
+\paragraph{Python-only evaluation.}
+All tasks in \bench{} target Python repositories. While our framework---the taxonomy, blueprint-to-trajectory pipeline, and metrics---is language-agnostic by design, the current empirical results may not generalize to statically typed languages (\eg, Java, Rust) where compiler feedback provides additional drift-detection signals, or to languages with fundamentally different tooling ecosystems. Extending to multi-language evaluation is a natural next step.
+
+\paragraph{Synthetic drift scenarios.}
+Our drift scenarios are synthetically constructed rather than captured from real developer sessions. While we mitigate this through grounding in real open-source repositories and three-layer verification (\cf~\S\ref{sec:bench-pipeline}), a distribution gap between synthetic and organic drift may remain. Real developer--agent interactions may exhibit drift patterns not covered by our taxonomy, or may combine drift types in ways our blueprint pipeline does not generate. Complementary studies with real users are needed to validate external validity.
+
+\paragraph{User simulator limitations.}
+The user simulator that drives multi-turn evaluation produces simplified responses compared to real developers, who may provide partial code snippets, reference external documentation, use ambiguous language, or express frustration. Our simulator follows the blueprint's drift schedule faithfully but does not model the full richness of developer communication. We plan to validate the simulator's fidelity following the protocol of $\tau$-Knowledge~\citep{tauknowledge2026}, targeting a critical error rate below 5\%.
+
+\paragraph{Task scale.}
+The current benchmark comprises 120 tasks across 6 repositories. While this provides sufficient statistical power for our primary analyses, it may not cover all SWE drift patterns---particularly rare compound drift sequences or domain-specific patterns in areas like systems programming or machine learning pipelines. Scaling the benchmark is an ongoing effort.
+
+\paragraph{Test-based evaluation gaps.}
+Our primary evaluation signal is test-suite pass rates. While tests provide a deterministic, reproducible assessment of functional correctness, they may miss important dimensions of code quality: style consistency, performance characteristics, maintainability, and adherence to project conventions. An agent that passes all tests but produces poorly structured code has arguably not fully adapted to the developer's intent. Incorporating code-quality metrics alongside test-based evaluation is a promising direction.
+
+
+% ============================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have introduced \drift{}-SWE, the first benchmark for evaluating software engineering agents under dynamic requirement evolution. Our contributions comprise a taxonomy of six intent drift patterns grounded in both HCI theory and software engineering practice, a benchmark of 120 multi-turn SWE tasks across 6 real-world Python repositories with deterministic test-based evaluation, and five drift-aware metrics that capture an agent's ability to detect, adapt to, and recover from evolving developer intent.
+
+Our evaluation reveals a clear and consequential finding: intent drift causes substantial performance degradation across all evaluated models and agent frameworks, with constraint addition (T3) and intent backtracking (T6) proving most challenging due to their intersection with the irreversibility of code changes. The gap between static-intent and drift-condition evaluation confirms that current SWE benchmarks systematically overestimate agent capabilities in the interactive, iterative reality of software development.
+
+Looking ahead, we identify three directions for future work. First, extending \bench{} to \emph{multi-language} support (Java, TypeScript, Rust) to assess whether language-specific tooling affects drift resilience. Second, conducting \emph{real user studies} with professional developers to validate our synthetic drift scenarios and uncover drift patterns not captured by the current taxonomy. Third, integrating drift-aware evaluation into \emph{CI/CD pipelines}, enabling continuous assessment of SWE agent robustness as both models and codebases evolve. We release the benchmark, evaluation framework, and all experimental artifacts to support reproducible research on this critical dimension of SWE agent capability.

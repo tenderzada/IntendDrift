@@ -1,0 +1,146 @@
+[
+  {
+    "id": "e_commerce_01",
+    "task": "Search for a laptop with specific specs for video editing",
+    "description": "The user wants to find laptops with at least 32GB RAM, a dedicated GPU, 15-inch or larger display, and SSD storage for professional video editing, within a $2,000 budget.",
+    "complexity": "moderate",
+    "required_tools": ["product_search", "spec_filter", "price_filter"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_02",
+    "task": "Compare prices of a specific sneaker across multiple retailers",
+    "description": "The user wants to buy Nike Air Max 90 in size 10 and wants to compare prices across Amazon, Nike.com, Foot Locker, and other retailers to find the best deal including shipping costs.",
+    "complexity": "moderate",
+    "required_tools": ["product_search", "price_comparison", "shipping_estimator"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_03",
+    "task": "Place an order for weekly groceries with same-day delivery",
+    "description": "The user wants to order a list of about 15 grocery items including produce, dairy, and pantry staples, check same-day delivery availability, and place the order with the fastest delivery slot.",
+    "complexity": "moderate",
+    "required_tools": ["product_search", "cart_management", "delivery_slot_check", "order_placement"],
+    "expected_turns": 6
+  },
+  {
+    "id": "e_commerce_04",
+    "task": "Initiate a return for a defective kitchen appliance",
+    "description": "The user received a blender that arrived with a cracked pitcher and wants to initiate a return, get a prepaid shipping label, and choose between a refund or replacement.",
+    "complexity": "moderate",
+    "required_tools": ["order_lookup", "return_initiation", "shipping_label_generator", "refund_processor"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_05",
+    "task": "Manage a wishlist for an upcoming birthday",
+    "description": "The user wants to create a wishlist, add 5 items they have been browsing, set price drop alerts, and share the wishlist link with family members.",
+    "complexity": "simple",
+    "required_tools": ["wishlist_create", "wishlist_add_item", "price_alert_setup", "wishlist_share"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_06",
+    "task": "Find and apply coupon codes for an electronics purchase",
+    "description": "The user is about to buy a $800 television and wants to search for active coupon codes, cashback offers, and student discounts that could be stacked to reduce the price.",
+    "complexity": "simple",
+    "required_tools": ["coupon_search", "discount_verification", "coupon_apply"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_07",
+    "task": "Read and compare reviews for two robot vacuum models",
+    "description": "The user is deciding between two robot vacuum models and wants to see summarized reviews, common pros and cons, reliability ratings, and real user photos for each.",
+    "complexity": "moderate",
+    "required_tools": ["product_lookup", "review_retrieval", "review_comparison"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_08",
+    "task": "Find the right clothing size using measurements",
+    "description": "The user wants to buy a dress from an international brand and needs help converting their body measurements to the brand's sizing chart, accounting for EU to US size differences.",
+    "complexity": "simple",
+    "required_tools": ["size_guide_lookup", "size_converter"],
+    "expected_turns": 3
+  },
+  {
+    "id": "e_commerce_09",
+    "task": "Estimate shipping cost and delivery date for an international order",
+    "description": "The user wants to order a product from a US-based store and have it shipped to Germany, needing to understand shipping options, costs, customs duties, and estimated delivery dates.",
+    "complexity": "moderate",
+    "required_tools": ["shipping_estimator", "customs_calculator", "delivery_tracker"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_10",
+    "task": "Track a package that appears to be delayed",
+    "description": "The user ordered a package 10 days ago with an expected delivery of 5 business days. They want to track the package, understand the delay reason, and explore options if it is lost.",
+    "complexity": "moderate",
+    "required_tools": ["order_lookup", "tracking_lookup", "delivery_support"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_11",
+    "task": "Set up a subscription for recurring household supplies",
+    "description": "The user wants to subscribe to monthly deliveries of laundry detergent, paper towels, and dish soap, comparing subscribe-and-save discounts across platforms.",
+    "complexity": "simple",
+    "required_tools": ["product_search", "subscription_setup", "price_comparison"],
+    "expected_turns": 4
+  },
+  {
+    "id": "e_commerce_12",
+    "task": "Buy a gift with gift wrapping and a personalized message",
+    "description": "The user wants to purchase a watch as a gift, add gift wrapping, include a personalized message, and have it shipped directly to the recipient at a different address.",
+    "complexity": "moderate",
+    "required_tools": ["product_search", "gift_options", "cart_management", "order_placement"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_13",
+    "task": "Find eco-friendly alternatives to common household products",
+    "description": "The user wants to replace their current cleaning products, trash bags, and food storage with eco-friendly or zero-waste alternatives, filtering by certifications and customer ratings.",
+    "complexity": "moderate",
+    "required_tools": ["product_search", "certification_filter", "review_retrieval", "price_comparison"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_14",
+    "task": "Claim a warranty for a broken electronic device",
+    "description": "The user's wireless headphones stopped working after 6 months and they want to check if the warranty is still valid, understand the claim process, and submit a warranty claim.",
+    "complexity": "moderate",
+    "required_tools": ["order_lookup", "warranty_check", "warranty_claim_submit"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_15",
+    "task": "Build a complete home office setup within a budget",
+    "description": "The user wants to furnish a home office with a desk, ergonomic chair, monitor, keyboard, mouse, and desk lamp, all within a $1,500 total budget, optimizing for reviews and compatibility.",
+    "complexity": "complex",
+    "required_tools": ["product_search", "price_filter", "review_retrieval", "compatibility_check", "cart_management"],
+    "expected_turns": 8
+  },
+  {
+    "id": "e_commerce_16",
+    "task": "Participate in a flash sale and secure limited-stock items",
+    "description": "The user wants to know when an upcoming flash sale starts, set alerts for specific items, and quickly add them to cart and check out when the sale goes live.",
+    "complexity": "moderate",
+    "required_tools": ["sale_lookup", "alert_setup", "cart_management", "order_placement"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_17",
+    "task": "Request a price match from a retailer",
+    "description": "The user found a TV at a competitor for $100 less and wants to check if their preferred retailer offers price matching, submit the price match request with proof, and get the adjustment.",
+    "complexity": "moderate",
+    "required_tools": ["price_comparison", "price_match_policy", "price_match_submit"],
+    "expected_turns": 5
+  },
+  {
+    "id": "e_commerce_18",
+    "task": "Cancel an order placed by mistake and reorder the correct item",
+    "description": "The user accidentally ordered the wrong color variant of a phone case and wants to cancel the pending order within the cancellation window, then reorder the correct color.",
+    "complexity": "moderate",
+    "required_tools": ["order_lookup", "order_cancellation", "product_search", "order_placement"],
+    "expected_turns": 5
+  }
+]

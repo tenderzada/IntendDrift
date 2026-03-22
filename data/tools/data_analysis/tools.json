@@ -1,0 +1,365 @@
+[
+  {
+    "name": "load_dataset",
+    "description": "Load a dataset from a file or URL into the analysis environment",
+    "parameters": {
+      "source": {"type": "string", "description": "File path or URL of the dataset", "required": true},
+      "format": {"type": "string", "description": "Data format", "required": false, "enum": ["csv", "json", "excel", "parquet", "sql", "tsv", "xml"]},
+      "sheet_name": {"type": "string", "description": "Sheet name for Excel files", "required": false},
+      "delimiter": {"type": "string", "description": "Custom delimiter for text files", "required": false},
+      "encoding": {"type": "string", "description": "File encoding", "required": false},
+      "sample_size": {"type": "integer", "description": "Number of rows to sample (load all if not specified)", "required": false}
+    },
+    "returns": "Dataset loaded with row count, column count, column names, and data types"
+  },
+  {
+    "name": "describe_dataset",
+    "description": "Generate descriptive statistics for a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the loaded dataset", "required": true},
+      "columns": {"type": "array", "description": "Specific columns to describe (all if empty)", "required": false},
+      "include": {"type": "array", "description": "Statistics to include", "required": false, "enum": ["count", "mean", "std", "min", "max", "quartiles", "missing", "unique", "skewness", "kurtosis"]}
+    },
+    "returns": "Descriptive statistics table with selected metrics for each column"
+  },
+  {
+    "name": "query_data",
+    "description": "Run a SQL-like query on a loaded dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to query", "required": true},
+      "query": {"type": "string", "description": "SQL query string", "required": true},
+      "limit": {"type": "integer", "description": "Maximum rows to return", "required": false}
+    },
+    "returns": "Query results as a table with column headers and row data"
+  },
+  {
+    "name": "filter_data",
+    "description": "Filter dataset rows based on conditions",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to filter", "required": true},
+      "conditions": {"type": "array", "description": "List of filter conditions (e.g., {column: 'age', operator: '>', value: 18})", "required": true},
+      "logic": {"type": "string", "description": "How to combine multiple conditions", "required": false, "enum": ["and", "or"]},
+      "save_as": {"type": "string", "description": "Name for the filtered dataset", "required": false}
+    },
+    "returns": "Filtered dataset with row count and preview of first rows"
+  },
+  {
+    "name": "aggregate_data",
+    "description": "Perform aggregation operations on grouped data",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "group_by": {"type": "array", "description": "Columns to group by", "required": true},
+      "aggregations": {"type": "object", "description": "Aggregation operations per column (e.g., {revenue: 'sum', price: 'mean'})", "required": true},
+      "sort_by": {"type": "string", "description": "Column to sort results by", "required": false},
+      "ascending": {"type": "boolean", "description": "Sort in ascending order", "required": false}
+    },
+    "returns": "Aggregated data table with group labels and computed values"
+  },
+  {
+    "name": "join_datasets",
+    "description": "Join two datasets on specified key columns",
+    "parameters": {
+      "left_dataset_id": {"type": "string", "description": "ID of the left dataset", "required": true},
+      "right_dataset_id": {"type": "string", "description": "ID of the right dataset", "required": true},
+      "left_key": {"type": "string", "description": "Join key column in left dataset", "required": true},
+      "right_key": {"type": "string", "description": "Join key column in right dataset", "required": true},
+      "join_type": {"type": "string", "description": "Type of join", "required": false, "enum": ["inner", "left", "right", "outer", "cross"]},
+      "save_as": {"type": "string", "description": "Name for the joined dataset", "required": false}
+    },
+    "returns": "Joined dataset with row count, columns, and preview"
+  },
+  {
+    "name": "create_visualization",
+    "description": "Create a chart or plot from dataset columns",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to visualize", "required": true},
+      "chart_type": {"type": "string", "description": "Type of visualization", "required": true, "enum": ["bar", "line", "scatter", "histogram", "pie", "box", "heatmap", "area", "violin", "treemap"]},
+      "x_column": {"type": "string", "description": "Column for x-axis", "required": false},
+      "y_column": {"type": "string", "description": "Column for y-axis", "required": false},
+      "color_column": {"type": "string", "description": "Column for color grouping", "required": false},
+      "title": {"type": "string", "description": "Chart title", "required": false},
+      "x_label": {"type": "string", "description": "X-axis label", "required": false},
+      "y_label": {"type": "string", "description": "Y-axis label", "required": false},
+      "size": {"type": "string", "description": "Chart size", "required": false, "enum": ["small", "medium", "large"]},
+      "style": {"type": "string", "description": "Visual style", "required": false, "enum": ["default", "minimal", "dark", "presentation"]}
+    },
+    "returns": "Generated chart image URL and embed code"
+  },
+  {
+    "name": "calculate_correlation",
+    "description": "Calculate correlation between columns in a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "columns": {"type": "array", "description": "Columns to include (all numeric if empty)", "required": false},
+      "method": {"type": "string", "description": "Correlation method", "required": false, "enum": ["pearson", "spearman", "kendall"]},
+      "visualize": {"type": "boolean", "description": "Generate correlation heatmap", "required": false}
+    },
+    "returns": "Correlation matrix with coefficients and p-values, optionally with heatmap"
+  },
+  {
+    "name": "detect_outliers",
+    "description": "Detect outliers in dataset columns using statistical methods",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "columns": {"type": "array", "description": "Columns to check for outliers", "required": true},
+      "method": {"type": "string", "description": "Outlier detection method", "required": false, "enum": ["iqr", "zscore", "isolation_forest", "dbscan"]},
+      "threshold": {"type": "number", "description": "Detection threshold (e.g., z-score threshold)", "required": false},
+      "action": {"type": "string", "description": "What to do with outliers", "required": false, "enum": ["flag", "remove", "cap", "report_only"]}
+    },
+    "returns": "Outlier report with count, indices, values, and visualization"
+  },
+  {
+    "name": "clean_data",
+    "description": "Apply data cleaning operations to a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to clean", "required": true},
+      "operations": {"type": "array", "description": "Cleaning operations to apply", "required": true, "enum": ["remove_duplicates", "fill_missing", "drop_missing", "trim_whitespace", "fix_types", "standardize_case", "remove_empty_columns"]},
+      "fill_strategy": {"type": "string", "description": "Strategy for filling missing values", "required": false, "enum": ["mean", "median", "mode", "zero", "forward_fill", "backward_fill", "interpolate"]},
+      "columns": {"type": "array", "description": "Specific columns to clean (all if empty)", "required": false}
+    },
+    "returns": "Cleaned dataset summary with changes made, rows affected, and before/after comparison"
+  },
+  {
+    "name": "transform_column",
+    "description": "Apply transformations to a dataset column",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "column": {"type": "string", "description": "Column to transform", "required": true},
+      "transformation": {"type": "string", "description": "Transformation to apply", "required": true, "enum": ["log", "sqrt", "normalize", "standardize", "one_hot_encode", "label_encode", "bin", "extract_date_part", "string_split", "custom"]},
+      "new_column_name": {"type": "string", "description": "Name for the transformed column", "required": false},
+      "params": {"type": "object", "description": "Additional parameters for the transformation", "required": false}
+    },
+    "returns": "Updated dataset with transformed column and summary of changes"
+  },
+  {
+    "name": "pivot_table",
+    "description": "Create a pivot table from a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "index": {"type": "array", "description": "Row grouping columns", "required": true},
+      "columns": {"type": "string", "description": "Column to pivot on", "required": false},
+      "values": {"type": "string", "description": "Column to aggregate", "required": true},
+      "aggfunc": {"type": "string", "description": "Aggregation function", "required": false, "enum": ["sum", "mean", "count", "min", "max", "median"]},
+      "fill_value": {"type": "number", "description": "Value to fill missing cells", "required": false}
+    },
+    "returns": "Pivot table with row/column headers and aggregated values"
+  },
+  {
+    "name": "run_regression",
+    "description": "Fit a regression model to predict a target variable",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "target_column": {"type": "string", "description": "Column to predict", "required": true},
+      "feature_columns": {"type": "array", "description": "Predictor columns", "required": true},
+      "model_type": {"type": "string", "description": "Regression model type", "required": false, "enum": ["linear", "polynomial", "ridge", "lasso", "random_forest", "gradient_boosting"]},
+      "test_size": {"type": "number", "description": "Fraction of data for testing (0-1)", "required": false},
+      "cross_validate": {"type": "boolean", "description": "Use cross-validation", "required": false}
+    },
+    "returns": "Model results with coefficients, R-squared, RMSE, feature importance, and predictions"
+  },
+  {
+    "name": "run_classification",
+    "description": "Train a classification model on the dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "target_column": {"type": "string", "description": "Column with class labels", "required": true},
+      "feature_columns": {"type": "array", "description": "Predictor columns", "required": true},
+      "model_type": {"type": "string", "description": "Classification model type", "required": false, "enum": ["logistic_regression", "decision_tree", "random_forest", "svm", "knn", "gradient_boosting", "naive_bayes"]},
+      "test_size": {"type": "number", "description": "Fraction of data for testing (0-1)", "required": false}
+    },
+    "returns": "Classification results with accuracy, precision, recall, F1, confusion matrix, and feature importance"
+  },
+  {
+    "name": "run_clustering",
+    "description": "Perform clustering analysis on the dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "columns": {"type": "array", "description": "Columns to use for clustering", "required": true},
+      "algorithm": {"type": "string", "description": "Clustering algorithm", "required": false, "enum": ["kmeans", "dbscan", "hierarchical", "gaussian_mixture"]},
+      "n_clusters": {"type": "integer", "description": "Number of clusters (for kmeans)", "required": false},
+      "visualize": {"type": "boolean", "description": "Generate cluster visualization", "required": false}
+    },
+    "returns": "Clustering results with cluster assignments, centers, metrics, and visualization"
+  },
+  {
+    "name": "time_series_analysis",
+    "description": "Analyze time series data for trends, seasonality, and forecasting",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "date_column": {"type": "string", "description": "Column containing dates/timestamps", "required": true},
+      "value_column": {"type": "string", "description": "Column containing values to analyze", "required": true},
+      "analysis_type": {"type": "string", "description": "Type of analysis", "required": true, "enum": ["decomposition", "forecast", "anomaly_detection", "trend_analysis"]},
+      "forecast_periods": {"type": "integer", "description": "Number of periods to forecast", "required": false},
+      "frequency": {"type": "string", "description": "Data frequency", "required": false, "enum": ["daily", "weekly", "monthly", "quarterly", "yearly"]}
+    },
+    "returns": "Analysis results with trend, seasonal components, forecast values, and confidence intervals"
+  },
+  {
+    "name": "export_results",
+    "description": "Export dataset or analysis results to a file",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to export", "required": true},
+      "format": {"type": "string", "description": "Export format", "required": true, "enum": ["csv", "excel", "json", "parquet", "html", "latex"]},
+      "output_path": {"type": "string", "description": "Output file path", "required": true},
+      "include_index": {"type": "boolean", "description": "Include row index in export", "required": false}
+    },
+    "returns": "Export confirmation with file path and size"
+  },
+  {
+    "name": "generate_report",
+    "description": "Generate an automated analysis report for a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "report_type": {"type": "string", "description": "Type of report", "required": true, "enum": ["exploratory", "summary", "profiling", "quality", "comparison"]},
+      "output_format": {"type": "string", "description": "Report output format", "required": false, "enum": ["html", "pdf", "markdown"]},
+      "title": {"type": "string", "description": "Report title", "required": false}
+    },
+    "returns": "Generated report URL with key findings highlighted"
+  },
+  {
+    "name": "sample_data",
+    "description": "Take a random or stratified sample from a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to sample", "required": true},
+      "sample_size": {"type": "integer", "description": "Number of rows to sample", "required": false},
+      "sample_fraction": {"type": "number", "description": "Fraction of data to sample (0-1)", "required": false},
+      "method": {"type": "string", "description": "Sampling method", "required": false, "enum": ["random", "stratified", "systematic", "first_n", "last_n"]},
+      "stratify_column": {"type": "string", "description": "Column for stratified sampling", "required": false},
+      "random_seed": {"type": "integer", "description": "Random seed for reproducibility", "required": false}
+    },
+    "returns": "Sampled dataset with row count and sample characteristics"
+  },
+  {
+    "name": "calculate_statistics",
+    "description": "Calculate specific statistical measures for columns",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "column": {"type": "string", "description": "Column to calculate statistics for", "required": true},
+      "statistics": {"type": "array", "description": "Statistics to calculate", "required": true, "enum": ["mean", "median", "mode", "variance", "std_dev", "percentile", "ci_95", "ci_99", "iqr", "coefficient_of_variation"]},
+      "percentile_values": {"type": "array", "description": "Specific percentile values to compute", "required": false}
+    },
+    "returns": "Calculated statistical values with interpretation"
+  },
+  {
+    "name": "hypothesis_test",
+    "description": "Perform a statistical hypothesis test",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "test_type": {"type": "string", "description": "Type of test", "required": true, "enum": ["t_test", "chi_square", "anova", "mann_whitney", "paired_t_test", "kolmogorov_smirnov", "shapiro_wilk"]},
+      "column_a": {"type": "string", "description": "First column or group", "required": true},
+      "column_b": {"type": "string", "description": "Second column or group", "required": false},
+      "alpha": {"type": "number", "description": "Significance level", "required": false},
+      "alternative": {"type": "string", "description": "Alternative hypothesis direction", "required": false, "enum": ["two_sided", "less", "greater"]}
+    },
+    "returns": "Test statistic, p-value, confidence interval, effect size, and interpretation"
+  },
+  {
+    "name": "create_dashboard",
+    "description": "Create an interactive dashboard with multiple visualizations",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "title": {"type": "string", "description": "Dashboard title", "required": true},
+      "charts": {"type": "array", "description": "List of chart configurations to include", "required": true},
+      "filters": {"type": "array", "description": "Interactive filter columns", "required": false},
+      "layout": {"type": "string", "description": "Dashboard layout", "required": false, "enum": ["grid", "vertical", "tabs"]}
+    },
+    "returns": "Dashboard URL with interactive charts and filters"
+  },
+  {
+    "name": "compare_datasets",
+    "description": "Compare two datasets for differences in structure, statistics, or values",
+    "parameters": {
+      "dataset_a_id": {"type": "string", "description": "First dataset ID", "required": true},
+      "dataset_b_id": {"type": "string", "description": "Second dataset ID", "required": true},
+      "comparison_type": {"type": "string", "description": "Type of comparison", "required": false, "enum": ["schema", "statistics", "values", "distribution", "all"]}
+    },
+    "returns": "Comparison report with schema differences, statistical differences, and value discrepancies"
+  },
+  {
+    "name": "feature_engineering",
+    "description": "Create new features from existing columns for modeling",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "operations": {"type": "array", "description": "Feature engineering operations to apply", "required": true},
+      "target_column": {"type": "string", "description": "Target column (for automatic feature selection)", "required": false},
+      "auto_select": {"type": "boolean", "description": "Automatically select best features", "required": false},
+      "top_k": {"type": "integer", "description": "Number of top features to select", "required": false}
+    },
+    "returns": "Updated dataset with new features, feature importance scores, and selection rationale"
+  },
+  {
+    "name": "validate_data",
+    "description": "Validate data quality against defined rules and constraints",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset to validate", "required": true},
+      "rules": {"type": "array", "description": "Validation rules to check (e.g., not null, range, format)", "required": true},
+      "report_level": {"type": "string", "description": "Detail level of validation report", "required": false, "enum": ["summary", "detailed", "row_level"]}
+    },
+    "returns": "Validation report with pass/fail per rule, violation counts, and affected rows"
+  },
+  {
+    "name": "get_column_info",
+    "description": "Get detailed information about a specific column in a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "column": {"type": "string", "description": "Column name", "required": true},
+      "include_distribution": {"type": "boolean", "description": "Include value distribution", "required": false},
+      "include_top_values": {"type": "boolean", "description": "Include most frequent values", "required": false},
+      "top_n": {"type": "integer", "description": "Number of top values to show", "required": false}
+    },
+    "returns": "Column details with data type, statistics, missing values, distribution, and sample values"
+  },
+  {
+    "name": "rename_columns",
+    "description": "Rename columns in a dataset",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "mapping": {"type": "object", "description": "Old name to new name mapping", "required": true}
+    },
+    "returns": "Updated column names confirmation"
+  },
+  {
+    "name": "add_calculated_column",
+    "description": "Add a new column based on a formula or expression",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "column_name": {"type": "string", "description": "Name for the new column", "required": true},
+      "expression": {"type": "string", "description": "Formula or expression (e.g., 'col_a + col_b', 'col_a * 0.1')", "required": true}
+    },
+    "returns": "Updated dataset with new calculated column and preview of values"
+  },
+  {
+    "name": "sort_data",
+    "description": "Sort dataset by one or more columns",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "by": {"type": "array", "description": "Columns to sort by", "required": true},
+      "ascending": {"type": "boolean", "description": "Sort in ascending order (default true)", "required": false}
+    },
+    "returns": "Sorted dataset preview"
+  },
+  {
+    "name": "dimensionality_reduction",
+    "description": "Reduce dataset dimensions using PCA, t-SNE, or UMAP",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "columns": {"type": "array", "description": "Columns to include in reduction", "required": true},
+      "method": {"type": "string", "description": "Reduction method", "required": true, "enum": ["pca", "tsne", "umap"]},
+      "n_components": {"type": "integer", "description": "Number of output dimensions", "required": false},
+      "visualize": {"type": "boolean", "description": "Create 2D/3D visualization", "required": false}
+    },
+    "returns": "Reduced dimensions with explained variance, component loadings, and visualization"
+  },
+  {
+    "name": "compute_distribution",
+    "description": "Analyze the distribution of values in a column",
+    "parameters": {
+      "dataset_id": {"type": "string", "description": "ID of the dataset", "required": true},
+      "column": {"type": "string", "description": "Column to analyze", "required": true},
+      "bins": {"type": "integer", "description": "Number of bins for histogram", "required": false},
+      "test_normality": {"type": "boolean", "description": "Run normality tests", "required": false},
+      "fit_distribution": {"type": "string", "description": "Distribution to fit", "required": false, "enum": ["normal", "exponential", "uniform", "poisson", "lognormal", "auto"]}
+    },
+    "returns": "Distribution statistics, histogram data, normality test results, and fitted distribution parameters"
+  }
+]

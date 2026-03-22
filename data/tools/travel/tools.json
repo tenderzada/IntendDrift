@@ -1,0 +1,330 @@
+[
+  {
+    "name": "search_flights",
+    "description": "Search for available flights between two cities on a given date",
+    "parameters": {
+      "origin": {"type": "string", "description": "Departure city or airport code", "required": true},
+      "destination": {"type": "string", "description": "Arrival city or airport code", "required": true},
+      "date": {"type": "string", "description": "Departure date (YYYY-MM-DD)", "required": true},
+      "max_price": {"type": "number", "description": "Maximum ticket price in USD", "required": false},
+      "direct_only": {"type": "boolean", "description": "Only show direct flights", "required": false},
+      "class": {"type": "string", "description": "Cabin class", "required": false, "enum": ["economy", "business", "first"]}
+    },
+    "returns": "List of available flights with price, duration, airline, stops, departure/arrival times"
+  },
+  {
+    "name": "search_hotels",
+    "description": "Search for available hotels in a specified city or area",
+    "parameters": {
+      "location": {"type": "string", "description": "City or area to search for hotels", "required": true},
+      "check_in": {"type": "string", "description": "Check-in date (YYYY-MM-DD)", "required": true},
+      "check_out": {"type": "string", "description": "Check-out date (YYYY-MM-DD)", "required": true},
+      "guests": {"type": "integer", "description": "Number of guests", "required": false},
+      "min_rating": {"type": "number", "description": "Minimum star rating (1-5)", "required": false},
+      "max_price_per_night": {"type": "number", "description": "Maximum price per night in USD", "required": false},
+      "amenities": {"type": "array", "description": "Desired amenities (e.g., wifi, pool, parking)", "required": false}
+    },
+    "returns": "List of available hotels with name, rating, price per night, amenities, and location details"
+  },
+  {
+    "name": "book_flight",
+    "description": "Book a specific flight for one or more passengers",
+    "parameters": {
+      "flight_id": {"type": "string", "description": "Unique identifier of the flight to book", "required": true},
+      "passengers": {"type": "array", "description": "List of passenger objects with name, date_of_birth, passport_number", "required": true},
+      "class": {"type": "string", "description": "Cabin class", "required": true, "enum": ["economy", "business", "first"]},
+      "payment_method_id": {"type": "string", "description": "ID of the payment method to use", "required": true}
+    },
+    "returns": "Booking confirmation with booking_id, itinerary details, total price, and e-ticket numbers"
+  },
+  {
+    "name": "book_hotel",
+    "description": "Book a hotel room for specified dates",
+    "parameters": {
+      "hotel_id": {"type": "string", "description": "Unique identifier of the hotel", "required": true},
+      "room_type": {"type": "string", "description": "Type of room to book", "required": true, "enum": ["single", "double", "suite", "deluxe", "family"]},
+      "check_in": {"type": "string", "description": "Check-in date (YYYY-MM-DD)", "required": true},
+      "check_out": {"type": "string", "description": "Check-out date (YYYY-MM-DD)", "required": true},
+      "guest_name": {"type": "string", "description": "Primary guest name", "required": true},
+      "payment_method_id": {"type": "string", "description": "ID of the payment method to use", "required": true},
+      "special_requests": {"type": "string", "description": "Any special requests (e.g., late check-in, extra pillows)", "required": false}
+    },
+    "returns": "Booking confirmation with reservation_id, hotel details, room details, total cost"
+  },
+  {
+    "name": "cancel_booking",
+    "description": "Cancel an existing travel booking (flight or hotel)",
+    "parameters": {
+      "booking_id": {"type": "string", "description": "Unique identifier of the booking to cancel", "required": true},
+      "reason": {"type": "string", "description": "Reason for cancellation", "required": false}
+    },
+    "returns": "Cancellation confirmation with refund amount and refund timeline"
+  },
+  {
+    "name": "get_booking_details",
+    "description": "Retrieve details of an existing booking by its ID",
+    "parameters": {
+      "booking_id": {"type": "string", "description": "Unique identifier of the booking", "required": true}
+    },
+    "returns": "Full booking details including status, itinerary, passengers, payment info, and cancellation policy"
+  },
+  {
+    "name": "search_car_rentals",
+    "description": "Search for available rental cars at a specific location",
+    "parameters": {
+      "pickup_location": {"type": "string", "description": "City or airport code for car pickup", "required": true},
+      "pickup_date": {"type": "string", "description": "Pickup date (YYYY-MM-DD)", "required": true},
+      "return_date": {"type": "string", "description": "Return date (YYYY-MM-DD)", "required": true},
+      "car_type": {"type": "string", "description": "Type of car desired", "required": false, "enum": ["economy", "compact", "midsize", "full_size", "suv", "luxury", "minivan"]},
+      "dropoff_location": {"type": "string", "description": "Different return location if one-way rental", "required": false}
+    },
+    "returns": "List of available rental cars with type, price per day, company, and included features"
+  },
+  {
+    "name": "book_car_rental",
+    "description": "Book a rental car reservation",
+    "parameters": {
+      "car_id": {"type": "string", "description": "Unique identifier of the rental car listing", "required": true},
+      "pickup_date": {"type": "string", "description": "Pickup date (YYYY-MM-DD)", "required": true},
+      "return_date": {"type": "string", "description": "Return date (YYYY-MM-DD)", "required": true},
+      "driver_name": {"type": "string", "description": "Name of the primary driver", "required": true},
+      "insurance": {"type": "string", "description": "Insurance coverage level", "required": false, "enum": ["basic", "standard", "premium"]},
+      "payment_method_id": {"type": "string", "description": "ID of the payment method to use", "required": true}
+    },
+    "returns": "Rental confirmation with reservation_id, car details, pickup instructions, total cost"
+  },
+  {
+    "name": "get_flight_status",
+    "description": "Check the real-time status of a specific flight",
+    "parameters": {
+      "flight_number": {"type": "string", "description": "Airline flight number (e.g., UA123)", "required": true},
+      "date": {"type": "string", "description": "Flight date (YYYY-MM-DD)", "required": true}
+    },
+    "returns": "Flight status including departure/arrival times, delays, gate information, and terminal"
+  },
+  {
+    "name": "compare_flights",
+    "description": "Compare multiple flights side by side on key attributes",
+    "parameters": {
+      "flight_ids": {"type": "array", "description": "List of flight IDs to compare", "required": true},
+      "criteria": {"type": "array", "description": "Comparison criteria", "required": false, "enum": ["price", "duration", "stops", "departure_time", "airline_rating"]}
+    },
+    "returns": "Side-by-side comparison table of selected flights across specified criteria"
+  },
+  {
+    "name": "compare_hotels",
+    "description": "Compare multiple hotels side by side on key attributes",
+    "parameters": {
+      "hotel_ids": {"type": "array", "description": "List of hotel IDs to compare", "required": true},
+      "criteria": {"type": "array", "description": "Comparison criteria", "required": false, "enum": ["price", "rating", "distance_to_center", "amenities", "review_score"]}
+    },
+    "returns": "Side-by-side comparison table of selected hotels across specified criteria"
+  },
+  {
+    "name": "get_travel_advisory",
+    "description": "Get travel advisory and safety information for a destination",
+    "parameters": {
+      "country": {"type": "string", "description": "Country name or ISO code", "required": true},
+      "city": {"type": "string", "description": "Specific city (optional)", "required": false}
+    },
+    "returns": "Travel advisory level, safety warnings, visa requirements, vaccination requirements, and local emergency contacts"
+  },
+  {
+    "name": "search_vacation_packages",
+    "description": "Search for bundled vacation packages including flights and hotels",
+    "parameters": {
+      "origin": {"type": "string", "description": "Departure city or airport code", "required": true},
+      "destination": {"type": "string", "description": "Destination city or region", "required": true},
+      "start_date": {"type": "string", "description": "Trip start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "Trip end date (YYYY-MM-DD)", "required": true},
+      "travelers": {"type": "integer", "description": "Number of travelers", "required": true},
+      "budget": {"type": "number", "description": "Maximum total budget in USD", "required": false}
+    },
+    "returns": "List of vacation packages with flight, hotel, total price, and savings compared to booking separately"
+  },
+  {
+    "name": "get_visa_requirements",
+    "description": "Check visa requirements for a specific nationality traveling to a destination",
+    "parameters": {
+      "passport_country": {"type": "string", "description": "Country of passport holder", "required": true},
+      "destination_country": {"type": "string", "description": "Destination country", "required": true},
+      "purpose": {"type": "string", "description": "Purpose of travel", "required": false, "enum": ["tourism", "business", "study", "work", "transit"]}
+    },
+    "returns": "Visa requirements including type, processing time, required documents, and fees"
+  },
+  {
+    "name": "search_activities",
+    "description": "Search for tours, activities, and attractions at a destination",
+    "parameters": {
+      "location": {"type": "string", "description": "City or area to search", "required": true},
+      "category": {"type": "string", "description": "Activity category", "required": false, "enum": ["sightseeing", "adventure", "cultural", "food_drink", "nature", "nightlife", "shopping"]},
+      "date": {"type": "string", "description": "Date for the activity (YYYY-MM-DD)", "required": false},
+      "max_price": {"type": "number", "description": "Maximum price per person in USD", "required": false}
+    },
+    "returns": "List of activities with name, description, price, duration, ratings, and availability"
+  },
+  {
+    "name": "book_activity",
+    "description": "Book a tour or activity at a destination",
+    "parameters": {
+      "activity_id": {"type": "string", "description": "Unique identifier of the activity", "required": true},
+      "date": {"type": "string", "description": "Date for the activity (YYYY-MM-DD)", "required": true},
+      "participants": {"type": "integer", "description": "Number of participants", "required": true},
+      "payment_method_id": {"type": "string", "description": "ID of the payment method to use", "required": true}
+    },
+    "returns": "Booking confirmation with reservation details, meeting point, and what to bring"
+  },
+  {
+    "name": "get_weather_forecast",
+    "description": "Get weather forecast for a destination on specific dates",
+    "parameters": {
+      "location": {"type": "string", "description": "City or region", "required": true},
+      "start_date": {"type": "string", "description": "Start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "End date (YYYY-MM-DD)", "required": false}
+    },
+    "returns": "Weather forecast with temperature, precipitation, humidity, and clothing recommendations"
+  },
+  {
+    "name": "calculate_trip_budget",
+    "description": "Estimate total trip budget based on destination, duration, and travel style",
+    "parameters": {
+      "destination": {"type": "string", "description": "Destination city or country", "required": true},
+      "duration_days": {"type": "integer", "description": "Number of days for the trip", "required": true},
+      "travel_style": {"type": "string", "description": "Budget level", "required": false, "enum": ["budget", "moderate", "luxury"]},
+      "include_flights": {"type": "boolean", "description": "Include estimated flight costs", "required": false},
+      "origin": {"type": "string", "description": "Origin city for flight cost estimation", "required": false}
+    },
+    "returns": "Breakdown of estimated costs: flights, accommodation, food, transport, activities, and total"
+  },
+  {
+    "name": "get_airport_info",
+    "description": "Get information about an airport including terminals, lounges, and transport options",
+    "parameters": {
+      "airport_code": {"type": "string", "description": "IATA airport code (e.g., JFK, LAX)", "required": true}
+    },
+    "returns": "Airport details including terminals, lounges, ground transport, restaurants, and tips"
+  },
+  {
+    "name": "search_travel_insurance",
+    "description": "Search for travel insurance plans for a trip",
+    "parameters": {
+      "destination": {"type": "string", "description": "Destination country", "required": true},
+      "start_date": {"type": "string", "description": "Trip start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "Trip end date (YYYY-MM-DD)", "required": true},
+      "travelers": {"type": "integer", "description": "Number of travelers", "required": true},
+      "coverage_type": {"type": "string", "description": "Type of coverage needed", "required": false, "enum": ["basic", "comprehensive", "medical_only", "cancellation_only"]}
+    },
+    "returns": "List of insurance plans with coverage details, premium, deductible, and exclusions"
+  },
+  {
+    "name": "modify_booking",
+    "description": "Modify an existing booking (change dates, room type, passenger details, etc.)",
+    "parameters": {
+      "booking_id": {"type": "string", "description": "Unique identifier of the booking to modify", "required": true},
+      "changes": {"type": "object", "description": "Object containing fields to change and their new values", "required": true}
+    },
+    "returns": "Updated booking details with any price difference and modification fee"
+  },
+  {
+    "name": "get_currency_exchange_rate",
+    "description": "Get current currency exchange rates for travel budgeting",
+    "parameters": {
+      "from_currency": {"type": "string", "description": "Source currency code (e.g., USD)", "required": true},
+      "to_currency": {"type": "string", "description": "Target currency code (e.g., EUR)", "required": true},
+      "amount": {"type": "number", "description": "Amount to convert", "required": false}
+    },
+    "returns": "Current exchange rate, converted amount, and rate trend over last 30 days"
+  },
+  {
+    "name": "create_trip_itinerary",
+    "description": "Create a day-by-day trip itinerary based on bookings and preferences",
+    "parameters": {
+      "destination": {"type": "string", "description": "Trip destination", "required": true},
+      "start_date": {"type": "string", "description": "Trip start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "Trip end date (YYYY-MM-DD)", "required": true},
+      "booking_ids": {"type": "array", "description": "List of existing booking IDs to include", "required": false},
+      "interests": {"type": "array", "description": "Traveler interests (e.g., history, food, nature)", "required": false},
+      "pace": {"type": "string", "description": "Preferred travel pace", "required": false, "enum": ["relaxed", "moderate", "packed"]}
+    },
+    "returns": "Day-by-day itinerary with scheduled activities, bookings, transport, and free time"
+  },
+  {
+    "name": "search_trains",
+    "description": "Search for available train routes between two cities",
+    "parameters": {
+      "origin": {"type": "string", "description": "Departure city or station", "required": true},
+      "destination": {"type": "string", "description": "Arrival city or station", "required": true},
+      "date": {"type": "string", "description": "Travel date (YYYY-MM-DD)", "required": true},
+      "class": {"type": "string", "description": "Seat class", "required": false, "enum": ["standard", "first_class", "sleeper"]}
+    },
+    "returns": "List of available trains with departure/arrival times, duration, price, and class options"
+  },
+  {
+    "name": "get_packing_suggestions",
+    "description": "Get packing suggestions based on destination, weather, and trip type",
+    "parameters": {
+      "destination": {"type": "string", "description": "Trip destination", "required": true},
+      "start_date": {"type": "string", "description": "Trip start date (YYYY-MM-DD)", "required": true},
+      "end_date": {"type": "string", "description": "Trip end date (YYYY-MM-DD)", "required": true},
+      "trip_type": {"type": "string", "description": "Type of trip", "required": false, "enum": ["business", "leisure", "adventure", "beach", "city_break"]}
+    },
+    "returns": "Categorized packing list with essentials, clothing, electronics, and destination-specific items"
+  },
+  {
+    "name": "search_airport_transfers",
+    "description": "Search for airport transfer options (shuttle, taxi, private car)",
+    "parameters": {
+      "airport_code": {"type": "string", "description": "IATA airport code", "required": true},
+      "destination_address": {"type": "string", "description": "Hotel or destination address", "required": true},
+      "date": {"type": "string", "description": "Transfer date (YYYY-MM-DD)", "required": true},
+      "time": {"type": "string", "description": "Pickup time (HH:MM)", "required": true},
+      "passengers": {"type": "integer", "description": "Number of passengers", "required": true},
+      "transfer_type": {"type": "string", "description": "Type of transfer", "required": false, "enum": ["shared_shuttle", "private_car", "taxi", "limousine"]}
+    },
+    "returns": "List of transfer options with vehicle type, price, estimated duration, and provider"
+  },
+  {
+    "name": "list_user_bookings",
+    "description": "List all bookings for the current user, optionally filtered by status or date range",
+    "parameters": {
+      "status": {"type": "string", "description": "Filter by booking status", "required": false, "enum": ["upcoming", "completed", "cancelled", "all"]},
+      "booking_type": {"type": "string", "description": "Filter by booking type", "required": false, "enum": ["flight", "hotel", "car", "activity", "all"]},
+      "from_date": {"type": "string", "description": "Start of date range (YYYY-MM-DD)", "required": false},
+      "to_date": {"type": "string", "description": "End of date range (YYYY-MM-DD)", "required": false}
+    },
+    "returns": "List of bookings with booking_id, type, status, dates, and summary details"
+  },
+  {
+    "name": "add_travel_review",
+    "description": "Submit a review for a hotel, airline, activity, or car rental",
+    "parameters": {
+      "booking_id": {"type": "string", "description": "Booking ID associated with the review", "required": true},
+      "rating": {"type": "integer", "description": "Rating from 1 to 5", "required": true},
+      "title": {"type": "string", "description": "Review title", "required": true},
+      "review_text": {"type": "string", "description": "Detailed review text", "required": true},
+      "categories": {"type": "object", "description": "Category-specific ratings (e.g., cleanliness, service, value)", "required": false}
+    },
+    "returns": "Confirmation of review submission with review ID"
+  },
+  {
+    "name": "get_loyalty_program_status",
+    "description": "Check loyalty program points balance and tier status for airlines or hotels",
+    "parameters": {
+      "program_name": {"type": "string", "description": "Name of the loyalty program", "required": true},
+      "member_id": {"type": "string", "description": "Membership ID", "required": true}
+    },
+    "returns": "Points balance, tier status, upcoming tier benefits, and points expiration info"
+  },
+  {
+    "name": "set_price_alert",
+    "description": "Set a price alert for flights or hotels to be notified when prices drop",
+    "parameters": {
+      "alert_type": {"type": "string", "description": "Type of price alert", "required": true, "enum": ["flight", "hotel"]},
+      "origin": {"type": "string", "description": "Origin city (for flights)", "required": false},
+      "destination": {"type": "string", "description": "Destination city or hotel location", "required": true},
+      "date": {"type": "string", "description": "Travel date (YYYY-MM-DD)", "required": true},
+      "target_price": {"type": "number", "description": "Target price in USD to trigger alert", "required": true}
+    },
+    "returns": "Alert confirmation with alert_id and current lowest price"
+  }
+]

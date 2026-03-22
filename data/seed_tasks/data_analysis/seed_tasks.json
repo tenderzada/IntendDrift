@@ -1,0 +1,146 @@
+[
+  {
+    "id": "data_analysis_01",
+    "task": "Load and preview a large CSV dataset of customer transactions",
+    "description": "The user has a 500MB CSV file of customer transactions and wants to load it, preview the first 20 rows, check column data types, and see the total number of records and columns.",
+    "complexity": "simple",
+    "required_tools": ["dataset_load", "data_preview", "schema_inspect"],
+    "expected_turns": 3
+  },
+  {
+    "id": "data_analysis_02",
+    "task": "Generate descriptive statistics for a sales dataset",
+    "description": "The user wants a statistical summary of their sales data including mean, median, standard deviation, min, max, and quartiles for revenue, quantity sold, and profit margin columns.",
+    "complexity": "simple",
+    "required_tools": ["dataset_load", "statistical_summary"],
+    "expected_turns": 3
+  },
+  {
+    "id": "data_analysis_03",
+    "task": "Create a dashboard of visualizations for monthly revenue trends",
+    "description": "The user wants to create a line chart of monthly revenue over 2 years, a bar chart of revenue by product category, and a pie chart of revenue by region, all in a single dashboard layout.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "data_aggregation", "chart_create", "dashboard_layout"],
+    "expected_turns": 6
+  },
+  {
+    "id": "data_analysis_04",
+    "task": "Filter and clean a dataset with missing values and duplicates",
+    "description": "The user's dataset has missing values in 5 columns, duplicate rows, and inconsistent date formats. They want to handle missing values, remove duplicates, and standardize the date column.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "missing_value_handler", "duplicate_remover", "data_transformer"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_05",
+    "task": "Aggregate sales data by region and quarter",
+    "description": "The user wants to pivot their transaction-level sales data to show total revenue, average order value, and number of orders grouped by region and quarter for the past fiscal year.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "data_aggregation", "pivot_table", "data_formatter"],
+    "expected_turns": 4
+  },
+  {
+    "id": "data_analysis_06",
+    "task": "Export analysis results to Excel with multiple formatted sheets",
+    "description": "The user wants to export their analysis results to an Excel file with separate sheets for raw data, summary statistics, and charts, with proper formatting, headers, and conditional formatting on key metrics.",
+    "complexity": "moderate",
+    "required_tools": ["data_formatter", "chart_create", "excel_export"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_07",
+    "task": "Compute correlation matrix and identify strongly correlated features",
+    "description": "The user has a dataset with 15 numeric features and wants to compute a correlation matrix, visualize it as a heatmap, and identify pairs of features with correlation above 0.8 or below -0.8.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "correlation_analysis", "heatmap_create", "feature_filter"],
+    "expected_turns": 4
+  },
+  {
+    "id": "data_analysis_08",
+    "task": "Detect and analyze trends in website traffic over time",
+    "description": "The user has 18 months of daily website traffic data and wants to identify overall trends, seasonal patterns, day-of-week effects, and any significant spikes or dips with possible explanations.",
+    "complexity": "complex",
+    "required_tools": ["dataset_load", "time_series_decomposition", "trend_detector", "anomaly_detector", "chart_create"],
+    "expected_turns": 7
+  },
+  {
+    "id": "data_analysis_09",
+    "task": "Identify outliers in financial transaction data",
+    "description": "The user wants to detect outlier transactions in their payment data using statistical methods (IQR and z-score), flag suspicious amounts, and visualize the distribution with outliers highlighted.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "outlier_detection", "statistical_summary", "chart_create"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_10",
+    "task": "Generate an automated weekly report from a database",
+    "description": "The user wants to connect to a PostgreSQL database, run predefined queries for weekly KPIs (active users, revenue, churn rate), generate charts, and compile everything into a PDF report.",
+    "complexity": "complex",
+    "required_tools": ["database_connect", "query_executor", "data_aggregation", "chart_create", "report_generator"],
+    "expected_turns": 8
+  },
+  {
+    "id": "data_analysis_11",
+    "task": "Merge two datasets on a common key and resolve conflicts",
+    "description": "The user has customer data from a CRM and purchase data from an e-commerce platform and wants to join them on customer email, handle mismatches, and create a unified customer view.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "data_merge", "conflict_resolver", "data_preview"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_12",
+    "task": "Perform cohort analysis on user retention data",
+    "description": "The user wants to group users by their sign-up month, track retention rates over the following 6 months for each cohort, and visualize the retention curves to identify trends.",
+    "complexity": "complex",
+    "required_tools": ["dataset_load", "cohort_builder", "retention_calculator", "chart_create"],
+    "expected_turns": 6
+  },
+  {
+    "id": "data_analysis_13",
+    "task": "Run A/B test analysis on conversion rate data",
+    "description": "The user ran an A/B test with two landing page variants and wants to analyze the results: compute conversion rates, run a chi-squared test for statistical significance, and calculate the confidence interval.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "ab_test_analyzer", "statistical_test", "chart_create"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_14",
+    "task": "Build a segmentation of customers based on purchase behavior",
+    "description": "The user wants to segment customers using RFM (Recency, Frequency, Monetary) analysis, assign each customer to a segment, and profile each segment with average metrics and visualizations.",
+    "complexity": "complex",
+    "required_tools": ["dataset_load", "feature_engineering", "clustering_analysis", "segment_profiler", "chart_create"],
+    "expected_turns": 7
+  },
+  {
+    "id": "data_analysis_15",
+    "task": "Compare this year's performance against last year's benchmarks",
+    "description": "The user wants to compare key business metrics (revenue, orders, average order value) for each month this year against the same month last year, calculating growth rates and highlighting underperforming months.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "data_aggregation", "comparison_calculator", "chart_create"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_16",
+    "task": "Parse and analyze server log files for error patterns",
+    "description": "The user has 2GB of server access logs and wants to parse them, count error codes by type and endpoint, identify the most error-prone endpoints, and track error rates over time.",
+    "complexity": "complex",
+    "required_tools": ["log_parser", "data_aggregation", "pattern_detector", "chart_create", "report_generator"],
+    "expected_turns": 7
+  },
+  {
+    "id": "data_analysis_17",
+    "task": "Create a geographic heatmap of sales by ZIP code",
+    "description": "The user wants to visualize their US sales data on a geographic heatmap, showing total revenue by ZIP code, with the ability to zoom into specific states and filter by product category.",
+    "complexity": "moderate",
+    "required_tools": ["dataset_load", "geocoding", "map_visualization", "data_filter"],
+    "expected_turns": 5
+  },
+  {
+    "id": "data_analysis_18",
+    "task": "Forecast next quarter's revenue using historical data",
+    "description": "The user has 3 years of monthly revenue data and wants to build a time series forecast for the next quarter, compare ARIMA and exponential smoothing methods, and provide confidence intervals.",
+    "complexity": "complex",
+    "required_tools": ["dataset_load", "time_series_model", "forecast_generator", "model_comparison", "chart_create"],
+    "expected_turns": 7
+  }
+]

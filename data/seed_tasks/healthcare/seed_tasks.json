@@ -1,0 +1,146 @@
+[
+  {
+    "id": "healthcare_01",
+    "task": "Book a dental cleaning appointment for next week",
+    "description": "The user wants to schedule a routine dental cleaning with their preferred dentist, checking available slots next week, preferring morning appointments, and confirming insurance coverage for the visit.",
+    "complexity": "simple",
+    "required_tools": ["provider_lookup", "appointment_availability", "appointment_booking", "insurance_verification"],
+    "expected_turns": 4
+  },
+  {
+    "id": "healthcare_02",
+    "task": "Look up side effects and interactions for a new medication",
+    "description": "The user was prescribed metformin and wants to understand common side effects, potential interactions with their existing medications (lisinopril and atorvastatin), and dietary considerations.",
+    "complexity": "moderate",
+    "required_tools": ["medication_lookup", "interaction_checker", "side_effect_lookup"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_03",
+    "task": "Check symptoms and determine if urgent care is needed",
+    "description": "The user has had a persistent headache for 3 days with mild fever and neck stiffness. They want to understand possible causes and whether they should seek immediate medical attention.",
+    "complexity": "moderate",
+    "required_tools": ["symptom_checker", "urgency_assessor", "provider_search"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_04",
+    "task": "Verify insurance coverage for an upcoming MRI procedure",
+    "description": "The user's doctor ordered an MRI of the knee and they want to verify if their insurance plan covers it, check if pre-authorization is needed, estimate out-of-pocket costs, and find in-network imaging centers.",
+    "complexity": "moderate",
+    "required_tools": ["insurance_verification", "coverage_checker", "cost_estimator", "provider_search"],
+    "expected_turns": 6
+  },
+  {
+    "id": "healthcare_05",
+    "task": "Access and download recent medical records",
+    "description": "The user is switching to a new primary care physician and needs to download their medical records from the past 2 years, including lab results, vaccination records, and visit summaries.",
+    "complexity": "moderate",
+    "required_tools": ["medical_records_access", "record_filter", "record_download"],
+    "expected_turns": 4
+  },
+  {
+    "id": "healthcare_06",
+    "task": "Refill a prescription and find the cheapest pharmacy",
+    "description": "The user needs to refill their blood pressure medication, check if they have remaining refills, and compare prices across local pharmacies and mail-order options to find the cheapest option.",
+    "complexity": "moderate",
+    "required_tools": ["prescription_lookup", "refill_request", "pharmacy_price_comparison"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_07",
+    "task": "Get a referral to a dermatologist for a skin concern",
+    "description": "The user has a suspicious mole and their primary care doctor recommended seeing a dermatologist. They need a referral, want to find in-network dermatologists nearby with good ratings, and book an appointment.",
+    "complexity": "complex",
+    "required_tools": ["referral_request", "provider_search", "review_lookup", "insurance_verification", "appointment_booking"],
+    "expected_turns": 7
+  },
+  {
+    "id": "healthcare_08",
+    "task": "Review and understand recent blood test results",
+    "description": "The user received lab results from a recent blood panel and wants to understand what each marker means, which values are outside the normal range, and what follow-up actions might be recommended.",
+    "complexity": "moderate",
+    "required_tools": ["lab_results_retrieval", "lab_value_interpreter", "normal_range_lookup"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_09",
+    "task": "Find personalized health tips for managing type 2 diabetes",
+    "description": "The user was recently diagnosed with type 2 diabetes and wants evidence-based tips on diet, exercise, blood sugar monitoring, and lifestyle changes to manage their condition.",
+    "complexity": "simple",
+    "required_tools": ["health_tips_search", "condition_info_lookup"],
+    "expected_turns": 3
+  },
+  {
+    "id": "healthcare_10",
+    "task": "Search for an in-network therapist accepting new patients",
+    "description": "The user is looking for a licensed therapist who accepts their Aetna insurance, specializes in anxiety and CBT, is accepting new patients, and offers evening or weekend appointments.",
+    "complexity": "moderate",
+    "required_tools": ["provider_search", "specialty_filter", "insurance_verification", "availability_check"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_11",
+    "task": "Schedule a telehealth visit for a minor illness",
+    "description": "The user has a sore throat and mild cough and wants to see a doctor via telehealth today rather than going to a clinic, finding a provider with same-day virtual availability.",
+    "complexity": "simple",
+    "required_tools": ["provider_search", "telehealth_availability", "appointment_booking"],
+    "expected_turns": 4
+  },
+  {
+    "id": "healthcare_12",
+    "task": "Compare health insurance plans during open enrollment",
+    "description": "The user is choosing between 3 health insurance plans offered by their employer and wants to compare premiums, deductibles, copays, prescription coverage, and estimate total annual costs based on their typical healthcare usage.",
+    "complexity": "complex",
+    "required_tools": ["plan_details_lookup", "plan_comparison", "cost_estimator", "prescription_coverage_check"],
+    "expected_turns": 7
+  },
+  {
+    "id": "healthcare_13",
+    "task": "Set up medication reminders for a complex regimen",
+    "description": "The user takes 4 medications at different times of day with different food requirements and wants to set up a reminder schedule that accounts for timing, food interactions, and refill dates.",
+    "complexity": "moderate",
+    "required_tools": ["medication_lookup", "reminder_create", "interaction_checker"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_14",
+    "task": "Find urgent care centers open now near current location",
+    "description": "The user's child has a minor injury on a Sunday evening and they need to find urgent care centers currently open nearby, check wait times, and confirm they treat pediatric patients.",
+    "complexity": "simple",
+    "required_tools": ["provider_search", "hours_filter", "wait_time_check"],
+    "expected_turns": 3
+  },
+  {
+    "id": "healthcare_15",
+    "task": "Request prior authorization for a prescribed medication",
+    "description": "The user's doctor prescribed a brand-name medication that requires prior authorization from insurance. They need to understand the process, gather required documentation, and submit the request.",
+    "complexity": "complex",
+    "required_tools": ["insurance_verification", "prior_auth_requirements", "document_upload", "prior_auth_submit"],
+    "expected_turns": 7
+  },
+  {
+    "id": "healthcare_16",
+    "task": "Track and log daily health metrics over time",
+    "description": "The user wants to log their daily blood pressure, blood sugar, weight, and exercise minutes, view trends over the past month, and prepare a summary report for their next doctor visit.",
+    "complexity": "moderate",
+    "required_tools": ["health_log_entry", "trend_analysis", "report_generator"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_17",
+    "task": "Understand an Explanation of Benefits statement",
+    "description": "The user received a confusing EOB after a hospital visit and wants to understand the charges, what insurance covered, what they owe, and whether any charges seem incorrect or should be disputed.",
+    "complexity": "moderate",
+    "required_tools": ["eob_retrieval", "eob_interpreter", "billing_dispute"],
+    "expected_turns": 5
+  },
+  {
+    "id": "healthcare_18",
+    "task": "Coordinate care between multiple specialists",
+    "description": "The user sees a cardiologist, endocrinologist, and primary care doctor, and wants to ensure all providers have each other's latest notes, upcoming appointments are not conflicting, and medications prescribed by each are compatible.",
+    "complexity": "complex",
+    "required_tools": ["provider_lookup", "medical_records_access", "appointment_list", "interaction_checker", "message_send"],
+    "expected_turns": 8
+  }
+]
