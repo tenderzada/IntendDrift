@@ -26,13 +26,16 @@ SWE-bench Live      & ongoing & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
 SWE-smith           & 50k+    & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
 SWE-EVO             & 48      & \ding{55} & \ding{55} & Partial  & \ding{55} \\
 SWE-CI              & 100     & Partial  & \ding{55} & Partial  & \ding{51} \\
+BeyondSWE           & 500     & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
 \midrule
 \textbf{\bench{}}   & XXX     & \ding{51} & \ding{51} & \ding{51} & \ding{51} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-As Table~\ref{tab:swe-compare} shows, a critical assumption pervades the entire SWE-bench lineage: \emph{requirements are given once and never change}. Every benchmark supplies a fixed issue description and measures whether the agent produces a correct patch. None models the user who filed the issue---there is no interaction, no clarification, and no possibility that the requirement evolves mid-task. Real-world software development, by contrast, is fundamentally iterative: developers routinely refine specifications, shift priorities, and add constraints after coding has begun. \bench{} fills this gap by introducing multi-turn user interaction with structured requirement evolution into SWE agent evaluation.
+Concurrently, BeyondSWE~\citep{beyondswe2026} extends SWE agent evaluation along two orthogonal axes: \emph{resolution scope} (from single-file fixes to full-repository generation) and \emph{knowledge scope} (from within-repo reasoning to cross-repository and domain-specialized problem solving). Across 500 tasks spanning four categories---cross-repo reasoning, domain-specific scientific coding, dependency migration, and specification-to-repository generation---even frontier models plateau below 45\% success, and no single model dominates all task types. Notably, their SearchSWE framework reveals that augmenting agents with external search sometimes \emph{degrades} performance, underscoring the difficulty of integrating new information into ongoing coding workflows.
+
+As Table~\ref{tab:swe-compare} shows, this growing family of benchmarks has expanded the \emph{what} (scope of changes) and the \emph{where} (cross-repo, cross-domain) of SWE evaluation. Yet a critical assumption pervades the entire lineage: \emph{requirements are given once and never change}. Every benchmark supplies a fixed issue description and measures whether the agent produces a correct patch. None models the user who filed the issue---there is no interaction, no clarification, and no possibility that the requirement evolves mid-task. Real-world software development, by contrast, is fundamentally iterative: developers routinely refine specifications, shift priorities, and add constraints after coding has begun. \bench{} fills this gap by adding the missing third axis---\emph{intent dynamics}---introducing multi-turn user interaction with structured requirement evolution into SWE agent evaluation.
 
 % ==============================================================
 \subsection{Tool-Agent-User Interaction Benchmarks}
