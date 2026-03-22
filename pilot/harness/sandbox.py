@@ -57,74 +57,80 @@ class Sandbox(ABC):
         """Return the workspace directory path."""
 
 
-class DaytonaSandbox(Sandbox):
-    """Daytona sandbox backend (works with both cloud and self-hosted)."""
+class DockerSandbox(Sandbox):
+    """Docker-based sandbox. No Daytona dependency — just plain Docker.
 
-    def __init__(self):
-        from daytona import Daytona, DaytonaConfig, CreateSandboxFromImageParams
-        import os
+    Each sandbox is an isolated Docker container with Python pre-installed.
+    Files are copied in, commands run via docker exec, container removed on destroy.
+    """
 
-        config = DaytonaConfig(
-            api_key=os.environ.get("DAYTONA_API_KEY", ""),
-            api_url=os.environ.get("DAYTONA_API_URL", "http://localhost:3000/api"),
+    def __init__(self, workspace_template: str = ""):
+        import uuid
+        self._container_name = f"intentdrift-{uuid.uuid4().hex[:8]}"
+        self._workspace = "/workspace"
+        self._template = workspace_template
+
+        # Create container
+        subprocess.run(
+            ["docker", "run", "-d", "--name", self._container_name,
+             "-w", self._workspace, "python:3.11-slim",
+             "sleep", "3600"],
+            capture_output=True, check=True,
         )
-        self._client = Daytona(config)
 
-        params = CreateSandboxFromImageParams(
-            image="python:3.11-slim",
-            language="python",
+        # Install basic deps inside container
+        self._docker_exec("pip install flask pytest -q")
+
+        # Copy workspace files if provided
+        if workspace_template and Path(workspace_template).exists():
+            subprocess.run(
+                ["docker", "cp", f"{workspace_template}/.", f"{self._container_name}:{self._workspace}/"],
+                capture_output=True, check=True,
+            )
+            self._docker_exec("git init -q && git add -A && git commit -q -m initial --allow-empty")
+
+    def _docker_exec(self, command: str) -> str:
+        result = subprocess.run(
+            ["docker", "exec", self._container_name, "bash", "-c",
+             f"cd {self._workspace} && {command}"],
+            capture_output=True, text=True, timeout=120,
         )
-        self._sandbox = self._client.create(params)
-        self._workspace = "/home/daytona"
+        output = result.stdout
+        if result.stderr:
+            output += "\n" + result.stderr
+        return output
 
     def exec(self, command: str, cwd: str = "") -> str:
         work_cwd = cwd or self._workspace
-        result = self._sandbox.process.exec(
-            f"cd {work_cwd} && {command}",
-            timeout=120,
-        )
-        # Handle different result types across SDK versions
-        if hasattr(result, 'output'):
-            return result.output or ""
-        if hasattr(result, 'result'):
-            return result.result or ""
-        return str(result)
+        return self._docker_exec(f"cd {work_cwd} && {command}")
 
     def read_file(self, path: str) -> str:
-        full_path = f"{self._workspace}/{path}" if not path.startswith("/") else path
-        data = self._sandbox.fs.download_file(full_path)
-        return data.decode("utf-8") if isinstance(data, bytes) else str(data)
+        return self._docker_exec(f"cat {path}")
 
     def write_file(self, path: str, content: str) -> None:
-        full_path = f"{self._workspace}/{path}" if not path.startswith("/") else path
-        data = content.encode("utf-8") if isinstance(content, str) else content
-        self._sandbox.fs.upload_file(full_path, data)
+        # Write via heredoc to handle special chars
+        escaped = content.replace("'", "'\\''")
+        self._docker_exec(f"mkdir -p $(dirname {path}) && cat > {path} << 'INNEREOF'\n{escaped}\nINNEREOF")
 
     def upload_dir(self, local_dir: str, remote_dir: str = "/workspace") -> None:
-        for root, dirs, files in os.walk(local_dir):
-            for f in files:
-                local_path = os.path.join(root, f)
-                rel_path = os.path.relpath(local_path, local_dir)
-                remote_path = f"{remote_dir}/{rel_path}".replace("\\", "/")
-                with open(local_path, "rb") as fh:
-                    self._sandbox.fs.upload_file(remote_path, fh.read())
+        subprocess.run(
+            ["docker", "cp", f"{local_dir}/.", f"{self._container_name}:{remote_dir}/"],
+            capture_output=True, check=True,
+        )
 
     def file_exists(self, path: str) -> bool:
-        try:
-            self.read_file(path)
-            return True
-        except Exception:
-            return False
+        result = self._docker_exec(f"test -f {path} && echo yes || echo no")
+        return "yes" in result
 
-    def list_files(self, path: str = "/workspace") -> list[str]:
-        result = self.exec(f"ls -1 {path}")
+    def list_files(self, path: str = ".") -> list[str]:
+        result = self._docker_exec(f"ls -1 {path}")
         return [f for f in result.strip().split("\n") if f]
 
     def destroy(self) -> None:
-        try:
-            self._client.delete(self._sandbox)
-        except Exception:
-            pass
+        subprocess.run(
+            ["docker", "rm", "-f", self._container_name],
+            capture_output=True,
+        )
 
     @property
     def workspace_dir(self) -> str:
@@ -201,15 +207,15 @@ class LocalSandbox(Sandbox):
 
 
 def create_sandbox(backend: str = "local", workspace_path: str = "") -> Sandbox:
-    """Factory: create a sandbox with the specified backend."""
-    if backend == "daytona":
-        sb = DaytonaSandbox()
-        if workspace_path:
-            sb.upload_dir(workspace_path, sb._workspace)
-            sb.exec("git init -q && git add -A && git commit -q -m initial --allow-empty")
-            sb.exec("pip install flask pytest -q")
-        return sb
+    """Factory: create a sandbox with the specified backend.
+
+    Backends:
+        - "local": runs directly on host filesystem (fast, no isolation)
+        - "docker": runs in a Docker container (isolated, needs Docker)
+    """
+    if backend == "docker":
+        return DockerSandbox(workspace_template=workspace_path)
     elif backend == "local":
         return LocalSandbox(workspace_path)
     else:
-        raise ValueError(f"Unknown backend: {backend}")
+        raise ValueError(f"Unknown backend: {backend}. Use 'local' or 'docker'.")

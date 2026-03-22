@@ -6,7 +6,7 @@ Usage:
     python run.py --task T1-001 --model qwen
 
     # Daytona mode (requires DAYTONA_API_KEY):
-    python run.py --task T1-001 --model qwen --sandbox daytona
+    python run.py --task T1-001 --model qwen --sandbox docker
 
     # Dry run (no LLM calls):
     python run.py --task T1-001 --dry-run
@@ -327,7 +327,7 @@ def main():
     parser = argparse.ArgumentParser(description="IntentDrift-SWE Pilot Runner")
     parser.add_argument("--task", type=str, help="Task ID (e.g. T1-001). Run all if omitted.")
     parser.add_argument("--model", default="qwen", choices=list(MODEL_CONFIGS.keys()))
-    parser.add_argument("--sandbox", default="local", choices=["local", "daytona"])
+    parser.add_argument("--sandbox", default="local", choices=["local", "docker"])
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--list", action="store_true", help="List all tasks and exit")
     args = parser.parse_args()
