@@ -329,10 +329,12 @@ def main():
     parser.add_argument("--model", default="qwen", choices=list(MODEL_CONFIGS.keys()))
     parser.add_argument("--sandbox", default="local", choices=["local", "docker"])
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--tasks-file", type=str, default=None, help="Path to tasks JSON file")
     parser.add_argument("--list", action="store_true", help="List all tasks and exit")
     args = parser.parse_args()
 
-    with open(TASKS_FILE, encoding="utf-8") as f:
+    tasks_file = Path(args.tasks_file) if args.tasks_file else TASKS_FILE
+    with open(tasks_file, encoding="utf-8") as f:
         all_tasks = json.load(f)
 
     if args.list:
@@ -352,16 +354,19 @@ def main():
     for task in tasks:
         logger.info(f"\n{'='*60}\nTask: {task['task_id']} ({task['drift_type']})\n{'='*60}")
 
-        tid = task["task_id"]  # e.g. "T1-001"
-        workspace_path = str(PROJECT_ROOT / "workspaces" / tid)
-        # Fallback: use T1-001 workspace for all tasks (only T1-001 has a workspace for now)
-        if not Path(workspace_path).exists():
-            workspace_path = str(PROJECT_ROOT / "workspaces" / "T1-001")
+        # For BeyondSWE tasks (have "image" field), Docker image has everything — no local workspace needed
+        # For custom tasks, look for a local workspace directory
+        workspace_path = ""
+        if not task.get("image"):
+            tid = task["task_id"]
+            workspace_path = str(PROJECT_ROOT / "workspaces" / tid)
             if not Path(workspace_path).exists():
-                logger.warning(f"No workspace for {task['task_id']}, skipping")
-                continue
+                workspace_path = str(PROJECT_ROOT / "workspaces" / "T1-001")
+                if not Path(workspace_path).exists():
+                    logger.warning(f"No workspace for {task['task_id']}, skipping")
+                    continue
 
-        sandbox = create_sandbox(backend=args.sandbox, workspace_path=workspace_path)
+        sandbox = create_sandbox(backend=args.sandbox, workspace_path=workspace_path, task=task)
         try:
             result = run_task(task, args.model, sandbox, dry_run=args.dry_run)
             results.append(result)

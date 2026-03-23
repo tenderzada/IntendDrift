@@ -58,36 +58,81 @@ class Sandbox(ABC):
 
 
 class DockerSandbox(Sandbox):
-    """Docker-based sandbox. No Daytona dependency — just plain Docker.
+    """Docker-based sandbox using BeyondSWE pre-built images.
 
-    Each sandbox is an isolated Docker container with Python pre-installed.
-    Files are copied in, commands run via docker exec, container removed on destroy.
+    Each sandbox is an isolated Docker container with the real project
+    environment (dependencies, code, tests) already set up by BeyondSWE.
+    The container is created from the BeyondSWE image, checked out to the
+    bug-version commit, and destroyed after evaluation.
+
+    For tasks without a BeyondSWE image (e.g. custom tasks), falls back
+    to python:3.11-slim with workspace files copied in.
     """
 
-    def __init__(self, workspace_template: str = ""):
+    def __init__(self, workspace_template: str = "", task: dict = None):
         import uuid
         self._container_name = f"intentdrift-{uuid.uuid4().hex[:8]}"
-        self._workspace = "/workspace"
         self._template = workspace_template
 
-        # Create container
-        subprocess.run(
-            ["docker", "run", "-d", "--name", self._container_name,
-             "-w", self._workspace, "python:3.11-slim",
-             "sleep", "3600"],
-            capture_output=True, check=True,
-        )
+        image = None
+        parent_commit = None
+        repo_subdir = None
 
-        # Install basic deps inside container
-        self._docker_exec("pip install flask pytest -q")
+        # If task has BeyondSWE image info, use it
+        if task:
+            image = task.get("image")
+            parent_commit = task.get("commit")
+            # Detect repo subdirectory from task source
+            repo = task.get("repo", "")
+            if "/" in repo:
+                repo_subdir = repo.split("/")[1]  # e.g. "Pylons/pyramid" -> "pyramid"
 
-        # Copy workspace files if provided
-        if workspace_template and Path(workspace_template).exists():
+        if image:
+            # BeyondSWE mode: use pre-built image with real project
+            self._image = image
             subprocess.run(
-                ["docker", "cp", f"{workspace_template}/.", f"{self._container_name}:{self._workspace}/"],
+                ["docker", "run", "-d", "--name", self._container_name,
+                 image, "sleep", "3600"],
                 capture_output=True, check=True,
             )
-            self._docker_exec("git init -q && git add -A && git commit -q -m initial --allow-empty")
+
+            # Find the workspace directory (BeyondSWE puts repo in /workspace/<repo_name>/)
+            if repo_subdir:
+                self._workspace = f"/workspace/{repo_subdir}"
+            else:
+                # Auto-detect: find the git repo inside /workspace
+                result = subprocess.run(
+                    ["docker", "exec", self._container_name, "bash", "-c",
+                     "find /workspace -maxdepth 2 -name '.git' -type d | head -1"],
+                    capture_output=True, text=True,
+                )
+                git_dir = result.stdout.strip()
+                self._workspace = str(Path(git_dir).parent) if git_dir else "/workspace"
+
+            # Checkout to the bug version (parent commit)
+            if parent_commit:
+                self._docker_exec(f"git checkout {parent_commit}")
+                self._docker_exec("git checkout -b agent-work")  # clean branch for agent's changes
+
+        else:
+            # Fallback: plain python image + copy files in
+            self._image = "python:3.11-slim"
+            self._workspace = "/workspace"
+            subprocess.run(
+                ["docker", "run", "-d", "--name", self._container_name,
+                 "-w", self._workspace, self._image,
+                 "sleep", "3600"],
+                capture_output=True, check=True,
+            )
+            self._docker_exec("pip install flask pytest -q")
+
+            if workspace_template and Path(workspace_template).exists():
+                subprocess.run(
+                    ["docker", "cp", f"{workspace_template}/.",
+                     f"{self._container_name}:{self._workspace}/"],
+                    capture_output=True, check=True,
+                )
+                self._docker_exec("git init -q && git add -A && git commit -q -m initial --allow-empty")
 
     def _docker_exec(self, command: str) -> str:
         result = subprocess.run(
@@ -206,15 +251,16 @@ class LocalSandbox(Sandbox):
         return str(self._run_dir)
 
 
-def create_sandbox(backend: str = "local", workspace_path: str = "") -> Sandbox:
+def create_sandbox(backend: str = "local", workspace_path: str = "", task: dict = None) -> Sandbox:
     """Factory: create a sandbox with the specified backend.
 
     Backends:
         - "local": runs directly on host filesystem (fast, no isolation)
         - "docker": runs in a Docker container (isolated, needs Docker)
+                    If task has a BeyondSWE image, uses that instead of python:3.11-slim
     """
     if backend == "docker":
-        return DockerSandbox(workspace_template=workspace_path)
+        return DockerSandbox(workspace_template=workspace_path, task=task)
     elif backend == "local":
         return LocalSandbox(workspace_path)
     else:
